@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  vite:
+    build:
+      context: ./vite-app
+    container_name: vite-app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./vite-app:/app
+      - /app/node_modules  # avoids overwriting node_modules
+    working_dir: /app
+    command: npm run dev -- --host
+    depends_on:
+      - ollama
+
+volumes:
+  ollama_data:
