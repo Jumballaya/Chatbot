@@ -8,6 +8,7 @@ run:
 
 ```bash
 docker compose up -d --build
+docker exec -it ollama ollama pull gemma3:1b
 ```
 
 In your browser navigate to:

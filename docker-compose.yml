@@ -8,6 +8,9 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_MODELS=gemm3:1b  # auto-pull on startup (requires latest Ollama)
+      - OLLAMA_HOST=0.0.0.0
     restart: unless-stopped
 
   vite:
