@@ -1,11 +1,15 @@
 import { create } from "zustand";
-import { sendPrompt } from "../api/prompt";
+import { initiatePrompt } from "../api/prompt";
 
 export type ChatRole = "user" | "assistant" | "system";
+export type ChatStatus = "complete" | "streaming" | "error";
 
 export type ChatEntry = {
+  id: string;
   role: ChatRole;
   content: string;
+  timestamp: number;
+  status?: ChatStatus;
 };
 
 export interface ChatState {
@@ -14,56 +18,85 @@ export interface ChatState {
   systemPrompt: string;
   error?: string;
 
-  addResponse: (content: string, role: ChatRole) => void;
-  clearResponses: () => void;
+  addEntry: (entry: Omit<ChatEntry, "timestamp">) => void;
+  updateEntry: (id: string, patch: Partial<ChatEntry>) => void;
+
+  setSystemPrompt: (systemPrompt: string) => void;
   fetchResponse: (prompt: string) => Promise<void>;
 }
 
+const STORAGE_KEY = "chat-history";
+
 export const useChatStore = create<ChatState>((set, get) => ({
-  responses: [],
+  responses: JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"),
   loading: false,
   error: undefined,
 
   systemPrompt:
     "You are a friendly assistant who speaks like a tech-savvy tutor.",
 
-  addResponse: (content, role) =>
-    set((s) => ({
-      responses: [...s.responses, { content, role }],
-    })),
+  setSystemPrompt: (systemPrompt) => set({ systemPrompt }),
 
-  clearResponses: () => set({ responses: [] }),
+  addEntry: (entry: Omit<ChatEntry, "timestamp">) => {
+    const newEntry = {
+      ...entry,
+      timestamp: Date.now(),
+      id: entry.id.length > 0 ? entry.id : crypto.randomUUID(),
+    };
+    const updated = [...get().responses, newEntry];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    set({ responses: updated });
+  },
+
+  updateEntry: (id: string, patch: Partial<ChatEntry>) => {
+    const updated = get().responses.map((m) =>
+      m.id === id ? { ...m, ...patch } : m
+    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    set({ responses: updated });
+  },
 
   fetchResponse: async (prompt: string) => {
-    set((s) => ({
-      loading: true,
-      error: undefined,
-      responses: [...s.responses, { content: prompt, role: "user" }],
-    }));
+    set({ error: undefined, loading: true });
+
+    const state = get();
+    state.addEntry({
+      role: "user",
+      content: prompt,
+      id: "",
+    });
+
+    const assistantId = crypto.randomUUID();
+    state.addEntry({
+      role: "assistant",
+      content: "",
+      id: assistantId,
+      status: "streaming",
+    });
 
     try {
-      const state = get();
-      const res = await sendPrompt([
-        {
-          role: "system",
-          content: state.systemPrompt,
-        },
-        ...state.responses,
-      ]);
+      const system = get().systemPrompt;
+      const messages: Array<{ role: ChatRole; content: string }> = [
+        { role: "system", content: system },
+        ...get().responses.map(({ role, content }) => ({ role, content })),
+      ];
+      let final = "";
+      for await (const partial of initiatePrompt(messages)) {
+        final = partial;
+        state.updateEntry(assistantId, {
+          content: partial,
+          status: "streaming",
+        });
+      }
 
-      console.log(res);
+      state.updateEntry(assistantId, {
+        content: final,
+        status: "complete",
+      });
 
-      set((s) => ({
-        responses: [
-          ...s.responses,
-          {
-            content: res.message.content.trim(),
-            role: res.message.role,
-          },
-        ],
-        loading: false,
-      }));
+      set({ loading: false });
     } catch (err) {
+      get().updateEntry(assistantId, { status: "error" });
       set({ error: (err as Error).message, loading: false });
     }
   },

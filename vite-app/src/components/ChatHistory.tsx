@@ -1,17 +1,24 @@
 import { useEffect, useRef } from "react";
 import { MarkdownViewer } from "../MarkdownViewer";
-import { ChatRole, useChatStore } from "../state/chatStore";
+import { ChatRole, ChatStatus, useChatStore } from "../state/chatStore";
 
 const $main =
   "flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-zinc-950 scrollbar-thumb-gray-600 scrollbar-track-gray-800 scrollbar-thumb-zinc-700";
 
-function ChatEntry(props: { role: ChatRole; content: string }) {
+function ChatEntry(props: {
+  role: ChatRole;
+  content: string;
+  status?: ChatStatus;
+}) {
   const bgColor = props.role === "user" ? "bg-indigo-500" : "bg-gray-900";
+  const width = props.role === "user" ? "" : "w-full";
   return (
     <article className="m-auto max-w-4xl w-4xl my-5 py-2">
       <div className="flex justify-end">
-        <div className={`rounded-md ${bgColor} text-white px-6 py-3`}>
-          <MarkdownViewer content={props.content} />
+        <div className={`rounded-md ${bgColor} text-white px-6 py-3 ${width}`}>
+          <MarkdownViewer
+            content={props.content + (props.status === "streaming" ? "▌" : "")}
+          />
         </div>
       </div>
     </article>
@@ -45,9 +52,10 @@ export default function ChatHistory() {
     <main className={$main} ref={chatContainerRef} onScroll={handleScroll}>
       {responses.map((res) => (
         <ChatEntry
-          key={`${res.content.slice(10)}-${res.role}`}
+          key={`${res.id}-${res.role}-${res.timestamp}`}
           role={res.role}
           content={res.content}
+          status={res.status}
         />
       ))}
       <div ref={bottomRef} />
