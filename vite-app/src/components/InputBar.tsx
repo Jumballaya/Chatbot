@@ -6,10 +6,12 @@ import { useChatStore } from "../state/chatStore";
 export default function InputBar() {
   const [prompt, setPrompt] = useState("");
   const fetchResponse = useChatStore((s) => s.fetchResponse);
+  const addResponse = useChatStore((s) => s.addResponse);
   const loading = useChatStore((s) => s.loading);
 
   const handleSend = () => {
     if (!prompt.trim()) return;
+    addResponse(prompt, true);
     fetchResponse(prompt);
     setPrompt("");
   };

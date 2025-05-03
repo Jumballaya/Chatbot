@@ -1,12 +1,18 @@
 import { create } from "zustand";
 import { sendPrompt } from "../api/prompt";
 
+export type ChatEntry = {
+  timestamp: number;
+  entry: string;
+  isUser: boolean;
+};
+
 export interface ChatState {
-  responses: string[];
+  responses: ChatEntry[];
   loading: boolean;
   error?: string;
 
-  addResponse: (markdown: string) => void;
+  addResponse: (entry: string, isUser: boolean) => void;
   clearResponses: () => void;
   fetchResponse: (prompt: string) => Promise<void>;
 }
@@ -16,8 +22,10 @@ export const useChatStore = create<ChatState>((set) => ({
   loading: false,
   error: undefined,
 
-  addResponse: (markdown) =>
-    set((s) => ({ responses: [...s.responses, markdown] })),
+  addResponse: (entry, isUser) =>
+    set((s) => ({
+      responses: [...s.responses, { entry, timestamp: Date.now(), isUser }],
+    })),
 
   clearResponses: () => set({ responses: [] }),
 
@@ -27,7 +35,14 @@ export const useChatStore = create<ChatState>((set) => ({
     try {
       const res = await sendPrompt(prompt);
       set((s) => ({
-        responses: [...s.responses, res.response.trim()],
+        responses: [
+          ...s.responses,
+          {
+            entry: res.response.trim(),
+            timestamp: Date.now(),
+            isUser: false,
+          },
+        ],
         loading: false,
       }));
     } catch (err) {
