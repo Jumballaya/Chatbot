@@ -12,10 +12,11 @@ function ChatEntry(props: {
 }) {
   const bgColor = props.role === "user" ? "bg-indigo-500" : "bg-gray-900";
   const width = props.role === "user" ? "" : "w-full";
+  const padding = props.role === "user" ? "px-6 py-3" : "px-8 py-6";
   return (
     <article className="m-auto max-w-4xl w-4xl my-5 py-2">
       <div className="flex justify-end">
-        <div className={`rounded-md ${bgColor} text-white px-6 py-3 ${width}`}>
+        <div className={`rounded-md ${bgColor} text-white ${padding} ${width}`}>
           <MarkdownViewer
             content={props.content + (props.status === "streaming" ? "▌" : "")}
           />

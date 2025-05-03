@@ -1,9 +1,5 @@
 import { ChatRole } from "../state/chatStore";
-
-const baseURL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:11434"
-    : "http://ollama:11434"; // used when running inside container (optional)
+import { baseURL } from "./apis";
 
 export async function* initiatePrompt(
   messages: Array<{ role: ChatRole; content: string }>,

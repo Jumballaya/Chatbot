@@ -3,7 +3,7 @@ import { initiatePrompt } from "../api/prompt";
 
 export type ChatRole = "user" | "assistant" | "system";
 export type ChatStatus = "complete" | "streaming" | "error";
-export type ChatModel = "gemma3" | "gemma3:1b";
+export type ChatModel = "gemma3" | "gemma3:1b" | "gemma3:4b";
 
 export type ChatEntry = {
   id: string;
@@ -17,11 +17,13 @@ export interface ChatState {
   responses: ChatEntry[];
   loading: boolean;
   systemPrompt: string;
-  aiModel: ChatModel;
+  aiModel: "" | ChatModel;
+  modelList: ChatModel[];
   error?: string;
 
   setSystemPrompt: (systemPrompt: string) => void;
   setAiModel: (model: ChatModel) => void;
+  setModelList: (list: ChatModel[]) => void;
 
   addEntry: (entry: Omit<ChatEntry, "timestamp">) => void;
   updateEntry: (id: string, patch: Partial<ChatEntry>) => void;
@@ -36,13 +38,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
   loading: false,
   error: undefined,
 
-  aiModel: "gemma3:1b",
+  modelList: [],
+  aiModel: "",
   systemPrompt:
     "You are a friendly assistant who speaks like a tech-savvy tutor.",
 
   setSystemPrompt: (systemPrompt) => set({ systemPrompt }),
-
-  setAiModel: (model: ChatModel) => set({ aiModel: model }),
+  setAiModel: (aiModel: ChatModel) => set({ aiModel }),
+  setModelList: (modelList: ChatModel[]) => set({ modelList }),
 
   addEntry: (entry: Omit<ChatEntry, "timestamp">) => {
     const newEntry = {
@@ -64,6 +67,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   fetchResponse: async (prompt: string) => {
+    if (get().aiModel === "") return;
+
     set({ error: undefined, loading: true });
 
     const state = get();

@@ -5,7 +5,7 @@ import InputBar from "./components/InputBar";
 export default function App() {
   return (
     <div className="h-screen flex flex-col bg-zinc-950 text-zinc-100 dark">
-      <Header title="Markdown Chat" />
+      <Header title="Chatter Bot" />
       <ChatHistory />
       <InputBar />
     </div>

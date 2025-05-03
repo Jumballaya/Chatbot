@@ -20,7 +20,7 @@ export default function TextArea(props: TextAreaProps) {
         if (e.key === "Enter" && lastKeyPressed != "Shift") {
           props?.onSubmit?.((e.target as HTMLTextAreaElement).value);
         }
-        if (e.key === "Enter" && lastKeyPressed != "Shift") {
+        if (e.key === "Enter" && lastKeyPressed === "Shift") {
           return;
         }
         setLastKeyPressed(e.key);
