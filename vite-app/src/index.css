@@ -178,4 +178,8 @@
   .dark .markdown .highlight pre {
     @apply bg-gray-900;
   }
+
+  .prose p:last-child {
+    margin-bottom: 0;
+  }
 }

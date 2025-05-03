@@ -39,7 +39,7 @@ export function MarkdownViewer({ content }: MarkdownViewerProps) {
 
   return (
     <div
-      className="m-w-none markdown"
+      className="m-w-none markdown prose prose-invert"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

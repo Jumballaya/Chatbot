@@ -6,12 +6,10 @@ import { useChatStore } from "../state/chatStore";
 export default function InputBar() {
   const [prompt, setPrompt] = useState("");
   const fetchResponse = useChatStore((s) => s.fetchResponse);
-  const addResponse = useChatStore((s) => s.addResponse);
   const loading = useChatStore((s) => s.loading);
 
   const handleSend = () => {
     if (!prompt.trim()) return;
-    addResponse(prompt, true);
     fetchResponse(prompt);
     setPrompt("");
   };
@@ -22,6 +20,7 @@ export default function InputBar() {
         <TextArea
           value={prompt}
           onChange={(value) => setPrompt(value)}
+          onSubmit={handleSend}
           disabled={loading}
         />
         <div className="flex flex-col gap-2">
@@ -31,7 +30,11 @@ export default function InputBar() {
             onClick={handleSend}
             disabled={loading}
           />
-          <Button variant="destructive" label="Clear" disabled={true} />
+          <Button
+            variant={loading ? "disabled" : "destructive"}
+            label="Clear"
+            disabled={true}
+          />
         </div>
       </div>
     </div>

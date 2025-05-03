@@ -1,3 +1,5 @@
+import { ChatEntry } from "../state/chatStore";
+
 const baseURL =
   window.location.hostname === "localhost"
     ? "http://localhost:11434"
@@ -6,7 +8,7 @@ const baseURL =
 type LlamaResponse = {
   model: string;
   created_at: string;
-  response: string;
+  message: ChatEntry;
   done: true;
   done_reason: string;
   context: number[];
@@ -18,15 +20,18 @@ type LlamaResponse = {
   eval_duration: number;
 };
 
-export async function sendPrompt(prompt: string): Promise<LlamaResponse> {
-  const res = await fetch(`${baseURL}/api/generate`, {
+export async function sendPrompt(
+  messages: ChatEntry[]
+): Promise<LlamaResponse> {
+  const res = await fetch(`${baseURL}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "gemma3:1b",
-      prompt: prompt,
       stream: false,
+      messages,
     }),
   });
+
   return res.json();
 }
