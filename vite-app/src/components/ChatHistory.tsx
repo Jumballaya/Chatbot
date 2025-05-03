@@ -31,7 +31,7 @@ function ChatEntry(props: {
               }
             />
           ) : (
-            <Image src={`data:image/png;base64, ${props.content}`} />
+            <Image src={`data:image/jpeg;base64, ${props.content}`} />
           )}
         </div>
       </div>

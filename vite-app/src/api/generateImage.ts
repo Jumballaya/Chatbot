@@ -44,7 +44,6 @@ export async function generateImage(prompt: string): Promise<string> {
     }
 
     const data: GenerateImageResponse = await response.json();
-    console.log("Image generation result:", data);
     return data.image_base64;
   } catch (err) {
     console.error("Image generation error:", err);
