@@ -9,9 +9,24 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     environment:
-      - OLLAMA_MODELS=gemm3:1b  # auto-pull on startup (requires latest Ollama)
+      - OLLAMA_MODELS=gemm3:4b  # auto-pull on startup (requires latest Ollama)
       - OLLAMA_HOST=0.0.0.0
     restart: unless-stopped
+
+  stable-diffusion:
+    image: gadicc/diffusers-api
+    container_name: stable-diffusion
+    ports:
+      - "8000:8000"
+    env_file: ".env"
+    environment:
+      HF_AUTH_TOKEN: ${HF_AUTH_TOKEN}
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
 
   vite:
     build:
@@ -26,6 +41,7 @@ services:
     command: npm run dev -- --host
     depends_on:
       - ollama
+      - stable-diffusion
 
 volumes:
   ollama_data:

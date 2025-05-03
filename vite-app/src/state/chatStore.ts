@@ -1,15 +1,19 @@
 import { create } from "zustand";
 import { initiatePrompt } from "../api/prompt";
+import { decideImage } from "../api/decideImage";
+import { generateImage } from "../api/generateImage";
 
 export type ChatRole = "user" | "assistant" | "system";
 export type ChatStatus = "complete" | "streaming" | "error";
 export type ChatModel = "gemma3" | "gemma3:1b" | "gemma3:4b";
+export type ChatType = "text" | "image";
 
 export type ChatEntry = {
   id: string;
   role: ChatRole;
   content: string;
   timestamp: number;
+  type: ChatType;
   status?: ChatStatus;
 };
 
@@ -67,49 +71,74 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   fetchResponse: async (prompt: string) => {
-    if (get().aiModel === "") return;
+    const state = get();
+    if (state.aiModel === "") return;
 
     set({ error: undefined, loading: true });
 
-    const state = get();
     state.addEntry({
       role: "user",
       content: prompt,
       id: "",
+      type: "text",
     });
 
+    const needsImage = await decideImage(prompt, state.aiModel);
     const assistantId = crypto.randomUUID();
-    state.addEntry({
-      role: "assistant",
-      content: "",
-      id: assistantId,
-      status: "streaming",
-    });
 
-    try {
-      const system = get().systemPrompt;
-      const messages: Array<{ role: ChatRole; content: string }> = [
-        { role: "system", content: system },
-        ...get().responses.map(({ role, content }) => ({ role, content })),
-      ];
-      let final = "";
-      for await (const partial of initiatePrompt(messages, state.aiModel)) {
-        final = partial;
-        state.updateEntry(assistantId, {
-          content: partial,
-          status: "streaming",
-        });
-      }
-
-      state.updateEntry(assistantId, {
-        content: final,
-        status: "complete",
+    if (needsImage) {
+      console.log("Needs image, generating one!");
+      state.addEntry({
+        role: "assistant",
+        content: "",
+        id: assistantId,
+        status: "streaming",
+        type: "image",
       });
 
-      set({ loading: false });
-    } catch (err) {
-      get().updateEntry(assistantId, { status: "error" });
-      set({ error: (err as Error).message, loading: false });
+      try {
+        const base64 = await generateImage(prompt);
+        state.updateEntry(assistantId, {
+          status: "complete",
+          content: base64,
+        });
+        set({ loading: false });
+      } catch (err) {
+        get().updateEntry(assistantId, { status: "error" });
+        set({ error: (err as Error).message, loading: false });
+      }
+    } else {
+      state.addEntry({
+        role: "assistant",
+        content: "",
+        id: assistantId,
+        status: "streaming",
+        type: "text",
+      });
+
+      try {
+        const system = get().systemPrompt;
+        const messages: Array<{ role: ChatRole; content: string }> = [
+          { role: "system", content: system },
+          ...get().responses.map(({ role, content }) => ({ role, content })),
+        ];
+        let final = "";
+        for await (const partial of initiatePrompt(messages, state.aiModel)) {
+          final = partial;
+          state.updateEntry(assistantId, {
+            content: partial,
+            status: "streaming",
+          });
+        }
+        state.updateEntry(assistantId, {
+          content: final,
+          status: "complete",
+        });
+        set({ loading: false });
+      } catch (err) {
+        get().updateEntry(assistantId, { status: "error" });
+        set({ error: (err as Error).message, loading: false });
+      }
     }
   },
 }));

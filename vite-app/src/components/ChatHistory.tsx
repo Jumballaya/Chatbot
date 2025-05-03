@@ -1,6 +1,12 @@
 import { useEffect, useRef } from "react";
 import { MarkdownViewer } from "../MarkdownViewer";
-import { ChatRole, ChatStatus, useChatStore } from "../state/chatStore";
+import {
+  ChatRole,
+  ChatStatus,
+  ChatType,
+  useChatStore,
+} from "../state/chatStore";
+import Image from "./Image";
 
 const $main =
   "flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-zinc-950 scrollbar-thumb-gray-600 scrollbar-track-gray-800 scrollbar-thumb-zinc-700";
@@ -9,6 +15,7 @@ function ChatEntry(props: {
   role: ChatRole;
   content: string;
   status?: ChatStatus;
+  type: ChatType;
 }) {
   const bgColor = props.role === "user" ? "bg-indigo-500" : "bg-gray-900";
   const width = props.role === "user" ? "" : "w-full";
@@ -17,9 +24,15 @@ function ChatEntry(props: {
     <article className="m-auto max-w-4xl w-4xl my-5 py-2">
       <div className="flex justify-end">
         <div className={`rounded-md ${bgColor} text-white ${padding} ${width}`}>
-          <MarkdownViewer
-            content={props.content + (props.status === "streaming" ? "▌" : "")}
-          />
+          {props.type === "text" ? (
+            <MarkdownViewer
+              content={
+                props.content + (props.status === "streaming" ? "▌" : "")
+              }
+            />
+          ) : (
+            <Image src={`data:image/png;base64, ${props.content}`} />
+          )}
         </div>
       </div>
     </article>
@@ -57,6 +70,7 @@ export default function ChatHistory() {
           role={res.role}
           content={res.content}
           status={res.status}
+          type={res.type}
         />
       ))}
       <div ref={bottomRef} />
