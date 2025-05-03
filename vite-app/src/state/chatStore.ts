@@ -3,6 +3,7 @@ import { initiatePrompt } from "../api/prompt";
 
 export type ChatRole = "user" | "assistant" | "system";
 export type ChatStatus = "complete" | "streaming" | "error";
+export type ChatModel = "gemma3" | "gemma3:1b";
 
 export type ChatEntry = {
   id: string;
@@ -16,12 +17,15 @@ export interface ChatState {
   responses: ChatEntry[];
   loading: boolean;
   systemPrompt: string;
+  aiModel: ChatModel;
   error?: string;
+
+  setSystemPrompt: (systemPrompt: string) => void;
+  setAiModel: (model: ChatModel) => void;
 
   addEntry: (entry: Omit<ChatEntry, "timestamp">) => void;
   updateEntry: (id: string, patch: Partial<ChatEntry>) => void;
 
-  setSystemPrompt: (systemPrompt: string) => void;
   fetchResponse: (prompt: string) => Promise<void>;
 }
 
@@ -32,10 +36,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
   loading: false,
   error: undefined,
 
+  aiModel: "gemma3:1b",
   systemPrompt:
     "You are a friendly assistant who speaks like a tech-savvy tutor.",
 
   setSystemPrompt: (systemPrompt) => set({ systemPrompt }),
+
+  setAiModel: (model: ChatModel) => set({ aiModel: model }),
 
   addEntry: (entry: Omit<ChatEntry, "timestamp">) => {
     const newEntry = {
@@ -81,7 +88,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ...get().responses.map(({ role, content }) => ({ role, content })),
       ];
       let final = "";
-      for await (const partial of initiatePrompt(messages)) {
+      for await (const partial of initiatePrompt(messages, state.aiModel)) {
         final = partial;
         state.updateEntry(assistantId, {
           content: partial,

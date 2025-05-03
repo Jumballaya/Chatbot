@@ -34,7 +34,7 @@ export async function* initiatePrompt(
     let buffer = decoder.decode(value, { stream: true });
     buffer = buffer.split("\n")[0];
 
-    const lines = buffer.trim().replaceAll(`}{`, `}%"%{`).split('%"%');
+    const lines = buffer.trim().split(/(?<=\})\s*(?=\{)/g);
     for (const line of lines) {
       try {
         const json = JSON.parse(line.trim());
