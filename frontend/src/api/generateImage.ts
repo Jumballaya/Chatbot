@@ -3,15 +3,6 @@ export const baseURL =
     ? "http://localhost:8000"
     : "http://stable-diffusion:8000"; // used when running inside container (optional)
 
-type GenerateImageResponse = {
-  $mem_usage: number;
-  $timings: {
-    loadModel: number;
-    inference: number;
-  };
-  image_base64: string;
-};
-
 export type GenerateImageRequest = {
   description: string;
   style: string;
@@ -21,52 +12,43 @@ export type GenerateImageRequest = {
   aspect_ratio: string;
 };
 
+type GenerateImageResponse = {
+  step: number;
+  image_url: string;
+  done?: boolean;
+};
+
 const genPrompt = (req: GenerateImageRequest) =>
   `A(n) ${req.style} scene of ${req.description}, inspired by ${
     req.artist
   }, in a ${req.mood} tone, with dominant colors ${req.colors.join(", ")}.`;
 
-export async function generateImage(
+export async function* generateImage(
   request: GenerateImageRequest
-): Promise<string> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10 * 60 * 1000); // 10 minutes
+): AsyncGenerator<GenerateImageResponse, void, void> {
+  const params = new URLSearchParams();
+  params.append("prompt", genPrompt(request));
+  params.append("steps", "75");
 
-  console.log("Generating Image...");
+  const baseURL = "http://localhost:8000";
+  const url = new URL(`${baseURL}/generate/stream?${params.toString()}`);
+  const evt = new EventSource(url.toString());
 
   try {
-    const response = await fetch("http://localhost:8000/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        modelInputs: {
-          prompt: genPrompt(request),
-          num_inference_steps: 10,
-        },
-        callInputs: {
-          MODEL_ID: "CompVis/stable-diffusion-v1-4",
-          PIPELINE: "StableDiffusionPipeline",
-          SCHEDULER: "DPMSolverMultistepScheduler",
-          safety_checker: false,
-        },
-      }),
-    });
-
-    console.log("Image generated");
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    while (true) {
+      const message = await new Promise<GenerateImageResponse>((res, rej) => {
+        evt.onmessage = (e) => {
+          const data: GenerateImageResponse = JSON.parse(e.data);
+          data.image_url = `http://localhost:8000${data.image_url}`;
+          if (data.done) evt.close();
+          res(data);
+        };
+        evt.onerror = (err) => rej(err);
+      });
+      yield message;
+      if (message.done) break;
     }
-
-    const data: GenerateImageResponse = await response.json();
-    return data.image_base64;
-  } catch (err) {
-    console.error("Image generation error:", err);
-    throw err;
   } finally {
-    clearTimeout(timeout);
+    evt.close();
   }
 }

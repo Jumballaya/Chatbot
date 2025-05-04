@@ -5,6 +5,8 @@ accelerate
 Pillow
 fastapi
 uvicorn
+uvicorn[standard]
 python-dotenv
 torchvision
 sse-starlette
+watchgod
