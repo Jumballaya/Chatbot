@@ -36,16 +36,23 @@ export interface ChatState {
 }
 
 const STORAGE_KEY = "chat-history";
+const initial: {
+  responses: Array<ChatEntry>;
+  systemPrompt: string;
+  aiModel: ChatModel;
+} = JSON.parse(
+  localStorage.getItem(STORAGE_KEY) ||
+    `{"responses": [], "systemPrompt": "You are a firndly assistant.", "aiModel": "" }`
+);
 
 export const useChatStore = create<ChatState>((set, get) => ({
-  responses: JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"),
+  responses: initial.responses,
   loading: false,
   error: undefined,
 
   modelList: [],
-  aiModel: "",
-  systemPrompt:
-    "You are a friendly assistant who speaks like a tech-savvy tutor.",
+  aiModel: initial.aiModel,
+  systemPrompt: initial.systemPrompt,
 
   setSystemPrompt: (systemPrompt) => set({ systemPrompt }),
   setAiModel: (aiModel: ChatModel) => set({ aiModel }),
@@ -58,7 +65,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
       id: entry.id.length > 0 ? entry.id : crypto.randomUUID(),
     };
     const updated = [...get().responses, newEntry];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        responses: updated,
+        systemPrompt: get().systemPrompt,
+        aiModel: get().aiModel,
+      })
+    );
     set({ responses: updated });
   },
 
@@ -66,7 +80,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const updated = get().responses.map((m) =>
       m.id === id ? { ...m, ...patch } : m
     );
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        responses: updated,
+        systemPrompt: get().systemPrompt,
+        aiModel: get().aiModel,
+      })
+    );
     set({ responses: updated });
   },
 

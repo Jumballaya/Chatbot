@@ -4,7 +4,7 @@ import { baseURL } from "./apis";
 const genPrompt = (
   p: string
 ) => `in your answers: 1.0 means a strong 100% yes and 0.0 means a strong 0% no.
-answer only in a number 0.0 to 1.0 to this question: Is the following prompt asking for an image?
+answer only in a number 0.0 to 1.0 to this question: Is the following prompt asking for an image to be created?
 
 ${p}`;
 
@@ -23,6 +23,7 @@ export async function decideImage(
   const json = (await res.json()) as { response: string };
   const n = parseFloat(json.response);
   if (!isNaN(n) && n >= 0.0 && n <= 1.0) {
+    console.log(`Image Decision: ${n}`);
     return n >= 0.5;
   }
   return false;
