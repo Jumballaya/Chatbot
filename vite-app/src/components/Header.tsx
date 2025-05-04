@@ -13,6 +13,7 @@ export default function Header(props: HeaderProps) {
   const modelList = useChatStore((s) => s.modelList);
   const setModelList = useChatStore((s) => s.setModelList);
   const setAiModel = useChatStore((s) => s.setAiModel);
+  const setSettingsActive = useChatStore((s) => s.setSettingsActive);
 
   useEffect(() => {
     getModelList().then((list) => {
@@ -25,7 +26,15 @@ export default function Header(props: HeaderProps) {
 
   return (
     <header className="h-12 w-full shrink-0 flex items-center justify-between px-4 border-b border-zinc-800">
-      <h1 className="text-lg font-semibold tracking-wide">{props.title}</h1>
+      <h1 className="text-xl font-semibold tracking-wide">
+        {props.title}{" "}
+        <span
+          className="px-3 cursor-pointer"
+          onClick={() => setSettingsActive(true)}
+        >
+          ⚙️
+        </span>
+      </h1>
 
       <Select
         label="Models"
