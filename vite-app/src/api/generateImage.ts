@@ -12,7 +12,23 @@ type GenerateImageResponse = {
   image_base64: string;
 };
 
-export async function generateImage(prompt: string): Promise<string> {
+export type GenerateImageRequest = {
+  description: string;
+  style: string;
+  artist: string;
+  mood: string;
+  colors: string[];
+  aspect_ratio: string;
+};
+
+const genPrompt = (req: GenerateImageRequest) =>
+  `A(n) ${req.style} scene of ${req.description}, inspired by ${
+    req.artist
+  }, in a ${req.mood} tone, with dominant colors ${req.colors.join(", ")}.`;
+
+export async function generateImage(
+  request: GenerateImageRequest
+): Promise<string> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10 * 60 * 1000); // 10 minutes
 
@@ -27,7 +43,7 @@ export async function generateImage(prompt: string): Promise<string> {
       signal: controller.signal,
       body: JSON.stringify({
         modelInputs: {
-          prompt,
+          prompt: genPrompt(request),
           num_inference_steps: 10,
         },
         callInputs: {
@@ -38,6 +54,8 @@ export async function generateImage(prompt: string): Promise<string> {
         },
       }),
     });
+
+    console.log("Image generated");
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { initiatePrompt } from "../api/prompt";
 import { decideImage } from "../api/decideImage";
 import { generateImage } from "../api/generateImage";
+import { extractImageDetails } from "../api/extractImageDetails";
 
 export type ChatRole = "user" | "assistant" | "system";
 export type ChatStatus = "complete" | "streaming" | "error";
@@ -118,10 +119,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       });
 
       try {
-        const base64 = await generateImage(prompt);
+        const imageDetails = await extractImageDetails(prompt, state.aiModel);
+        console.log(imageDetails);
+        const base64 = await generateImage(imageDetails);
         state.updateEntry(assistantId, {
           status: "complete",
-          content: base64,
+          content: `data:image/jpeg;base64, ${base64}`,
         });
         set({ loading: false });
       } catch (err) {
