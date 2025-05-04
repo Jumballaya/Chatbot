@@ -1,0 +1,10 @@
+torch
+diffusers[torch]
+transformers
+accelerate
+Pillow
+fastapi
+uvicorn
+python-dotenv
+torchvision
+sse-starlette

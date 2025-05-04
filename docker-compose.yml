@@ -11,15 +11,19 @@ services:
       - OLLAMA_HOST=0.0.0.0
     restart: unless-stopped
 
-  stable-diffusion:
-    image: gadicc/diffusers-api
-    container_name: stable-diffusion
+  image-server:
+    build:
+      context: ./image-server
+    container_name: image-server
     ports:
       - "8000:8000"
+    volumes:
+      - ./image-server:/app
     env_file: ".env"
+    runtime: nvidia
     environment:
-      HF_AUTH_TOKEN: ${HF_AUTH_TOKEN}
-    restart: unless-stopped
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     deploy:
       resources:
         reservations:
@@ -39,7 +43,7 @@ services:
     command: npm run dev -- --host
     depends_on:
       - ollama
-      - stable-diffusion
+      - image-server
 
 volumes:
   ollama_data:
