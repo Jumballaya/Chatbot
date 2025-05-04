@@ -23,6 +23,7 @@ export interface ChatState {
   systemPrompt: string;
   aiModel: "" | ChatModel;
   modelList: ChatModel[];
+  darkMode: boolean;
   error?: string;
 
   settingsActive: boolean;
@@ -31,6 +32,7 @@ export interface ChatState {
   setAiModel: (model: ChatModel) => void;
   setModelList: (list: ChatModel[]) => void;
   setSettingsActive: (active: boolean) => void;
+  setDarkMode: (darkMode: boolean) => void;
 
   addEntry: (entry: Omit<ChatEntry, "timestamp">) => void;
   updateEntry: (id: string, patch: Partial<ChatEntry>) => void;
@@ -41,28 +43,33 @@ export interface ChatState {
 const STORAGE_KEY = "chat-history";
 const MODEL_KEY = "chat-model";
 const SYSTEM_PROMPT_KEY = "chat-system-prompt";
+const DARKMODE_KEY = "char-darkmode";
 
 export const useChatStore = create<ChatState>((set, get) => ({
   responses: JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"),
   loading: false,
   error: undefined,
   settingsActive: false,
+  darkMode: JSON.parse(localStorage.getItem(DARKMODE_KEY) || "true"),
 
   modelList: [],
-  aiModel: (localStorage.getItem(MODEL_KEY) as ChatModel) ?? "",
+  aiModel: (localStorage.getItem(MODEL_KEY) as ChatModel) ?? "gemma3:4b",
   systemPrompt:
     localStorage.getItem(SYSTEM_PROMPT_KEY) || "You are a friendly assistant",
-
   setSystemPrompt: (systemPrompt) => {
-    localStorage.setItem(SYSTEM_PROMPT_KEY, JSON.stringify(systemPrompt));
+    localStorage.setItem(SYSTEM_PROMPT_KEY, systemPrompt);
     set({ systemPrompt });
   },
   setAiModel: (aiModel: ChatModel) => {
-    localStorage.setItem(MODEL_KEY, JSON.stringify(aiModel));
+    localStorage.setItem(MODEL_KEY, aiModel);
     set({ aiModel });
   },
   setModelList: (modelList: ChatModel[]) => set({ modelList }),
   setSettingsActive: (settingsActive: boolean) => set({ settingsActive }),
+  setDarkMode: (darkMode: boolean) => {
+    localStorage.setItem(DARKMODE_KEY, JSON.stringify(darkMode));
+    set({ darkMode });
+  },
 
   addEntry: (entry: Omit<ChatEntry, "timestamp">) => {
     const newEntry = {
@@ -85,7 +92,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   fetchResponse: async (prompt: string) => {
     const state = get();
-    if (state.aiModel === "") return;
+    if (!state.aiModel) return;
+    console.log(state.aiModel);
 
     set({ error: undefined, loading: true });
 

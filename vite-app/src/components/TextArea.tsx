@@ -25,10 +25,11 @@ export default function TextArea(props: TextAreaProps) {
         }
         setLastKeyPressed(e.key);
       }}
+      rows={4}
       value={props.value}
       disabled={props.disabled ?? false}
       placeholder={props.placeholder ?? "Type your prompt..."}
-      className="flex-1 resize-none rounded-md p-2 border border-zinc-700 bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      className="flex-1 resize-none rounded-md p-2 border-2 bg-zinc-100 border-white dark:border-zinc-700 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
     />
   );
 }
