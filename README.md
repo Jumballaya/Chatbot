@@ -23,3 +23,5 @@ Wait for ollama and stable-diffusion to finish setting up:
 docker logs ollama
 docker logs image-server
 ```
+
+When ollama is ready you should see the gemma3:4b option in top right dropdown: http://localhost:5173/
