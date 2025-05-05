@@ -13,9 +13,9 @@ async def generate_stream(prompt: str, steps: int = 25):
     every_n_steps = 5
     id = uuid.uuid4().hex[:8]
 
-    text_input = pipe.tokenizer(prompt, padding="max_length", max_length=pipe.tokenizer.model_max_length, return_tensors="pt")
+    text_input = pipe.tokenizer(prompt, padding="max_length", truncation=True, max_length=pipe.tokenizer.model_max_length, return_tensors="pt")
     text_embeddings = pipe.text_encoder(text_input.input_ids.to(pipe.device))[0]
-    uncond_input = pipe.tokenizer([""], padding="max_length", max_length=text_input.input_ids.shape[-1], return_tensors="pt")
+    uncond_input = pipe.tokenizer([""], padding="max_length", truncation=True, max_length=text_input.input_ids.shape[-1], return_tensors="pt")
     uncond_embeddings = pipe.text_encoder(uncond_input.input_ids.to(pipe.device))[0]
     embeddings = torch.cat([uncond_embeddings, text_embeddings])
 

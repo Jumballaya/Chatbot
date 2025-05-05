@@ -1,7 +1,7 @@
 export const baseURL =
   window.location.hostname === "localhost"
     ? "http://localhost:8000"
-    : "http://stable-diffusion:8000"; // used when running inside container (optional)
+    : "http://image-server:8000"; // used when running inside container (optional)
 
 export type GenerateImageRequest = {
   description: string;
@@ -30,7 +30,6 @@ export async function* generateImage(
   params.append("prompt", genPrompt(request));
   params.append("steps", "75");
 
-  const baseURL = "http://localhost:8000";
   const url = new URL(`${baseURL}/generate/stream?${params.toString()}`);
   const evt = new EventSource(url.toString());
 

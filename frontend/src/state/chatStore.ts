@@ -121,11 +121,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       try {
         const imageDetails = await extractImageDetails(prompt, state.aiModel);
         console.log(imageDetails);
-        const base64 = await generateImage(imageDetails);
-        state.updateEntry(assistantId, {
-          status: "complete",
-          content: `data:image/jpeg;base64, ${base64}`,
-        });
+        for await (const frame of generateImage(imageDetails)) {
+          state.updateEntry(assistantId, {
+            content: frame.image_url,
+            status: frame.done ? "complete" : "streaming",
+          });
+        }
         set({ loading: false });
       } catch (err) {
         get().updateEntry(assistantId, { status: "error" });
