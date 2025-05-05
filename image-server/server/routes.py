@@ -9,7 +9,7 @@ router = APIRouter()
 async def generate_stream(prompt: str, steps: int = 25):
     print(prompt, steps)
 
-    guidance_scale = 15.5
+    guidance_scale = 4.5
     every_n_steps = 5
     id = uuid.uuid4().hex[:8]
 
