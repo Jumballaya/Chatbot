@@ -28,7 +28,7 @@ const nodeTypes = {
   out: OutputNodeComponent,
 };
 
-export function GraphEditorTab() {
+export default function GraphEditorTab() {
   const graphStore = useGraphStore(graphSelector, shallow);
   const darkMode = useUIStore((s) => s.darkMode);
 

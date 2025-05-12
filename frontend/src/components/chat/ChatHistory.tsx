@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { MarkdownViewer } from "./MarkdownViewer";
+import MarkdownViewer from "./MarkdownViewer";
 import {
   ChatRole,
   ChatStatus,

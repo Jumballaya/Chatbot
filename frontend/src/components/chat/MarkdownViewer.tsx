@@ -20,7 +20,7 @@ marked.setOptions({ breaks: true });
 
 type MarkdownViewerProps = { content: string };
 
-export function MarkdownViewer({ content }: MarkdownViewerProps) {
+export default function MarkdownViewer({ content }: MarkdownViewerProps) {
   const [html, setHtml] = useState<string>("");
 
   useEffect(() => {

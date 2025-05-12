@@ -1,9 +1,10 @@
+import GlobalVariableEditor from "./components/graph/GlobalVariableEditor";
 import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
 import { useUIStore } from "./state/uiStore";
-import { ChatTab } from "./tabs/Chat";
+import ChatTab from "./tabs/Chat";
 import FileEditorTab from "./tabs/FileEditor";
-import { GraphEditorTab } from "./tabs/GraphEditor";
+import GraphEditorTab from "./tabs/GraphEditor";
 
 // set darkmode here on the conrainer div
 
@@ -20,6 +21,7 @@ export default function App() {
       <SettingsModal />
       <Header />
       {mode === "agent-chat" && <ChatTab />}
+      <GlobalVariableEditor visible={mode === "graph-editor"} />
       {mode === "graph-editor" && <GraphEditorTab />}
       {mode === "file-editor" && <FileEditorTab />}
     </div>
