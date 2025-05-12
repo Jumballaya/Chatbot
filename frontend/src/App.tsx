@@ -1,4 +1,5 @@
 import Header from "./components/Header";
+import SettingsModal from "./components/SettingsModal";
 import { useChatStore } from "./state/chatStore";
 import { useUIStore } from "./state/uiStore";
 import { ChatTab } from "./tabs/Chat";
@@ -17,6 +18,7 @@ export default function App() {
         darkMode ? "dark" : ""
       } h-screen flex flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
     >
+      <SettingsModal />
       <Header title="Chat" />
       {mode === "agent-chat" && <ChatTab />}
       {mode === "graph-editor" && <GraphEditorTab />}
