@@ -6,7 +6,8 @@ import {
   Value,
   ViewProps,
 } from "@tweakpane/core";
-import { VariableEntry } from "./types";
+import type { VariableEntry } from "./types";
+import type { Data } from "../graph/types";
 
 export const VariableEntryPlugin = createPlugin({
   id: "variable-entry",
@@ -41,10 +42,16 @@ export const VariableEntryPlugin = createPlugin({
     document: Document;
     value: Value<VariableEntry>;
     viewProps: ViewProps;
+    params: Record<string, Data>;
   }) {
+    const onUpdate = args.params.inject?.onUpdate as (v: VariableEntry) => void;
+    const onRemove = args.params.inject?.onRemove as () => void;
+
     return new VariableEntryController(args.document, {
       value: args.value,
       viewProps: args.viewProps,
+      onUpdate,
+      onRemove,
     });
   },
 } as TpPlugin) satisfies TpPlugin;

@@ -1,15 +1,17 @@
-import { useEffect, useRef } from "react";
-import { useTweakPane } from "../../hooks/useTweakPane";
-import { FolderApi, Pane } from "tweakpane";
+import { useRef } from "react";
 import { VariableEntry } from "../../tweakpane/types";
+import useVariableFolder from "../../hooks/useVariableFolder";
 
-let PANE: Pane | null = null;
-let FOLDER: FolderApi | null = null;
 const globals: Record<string, VariableEntry> = {
+  initial_prompt: {
+    name: "initial_prompt",
+    type: "string",
+    value: "What is the weather like in Tulsa, Oklahoma?",
+  },
   llm_model: {
     name: "llm_model",
     type: "string",
-    value: "What is the weather like in Tulsa, Oklahoma?",
+    value: "gemma3:4b",
   },
 };
 
@@ -21,33 +23,20 @@ const styles = {
 export default function GlobalVariableEditor(props: { visible?: boolean }) {
   const ref = useRef<HTMLDivElement | null>(null);
 
-  const { current: pane } = useTweakPane({
-    title: "",
-    container: ref,
+  const folder = useVariableFolder(ref, {
+    title: "Global Variables",
+    variables: globals,
+    onUpdate: (v) => {
+      globals[v.name] = {
+        name: v.name,
+        type: v.type,
+        value: v.value,
+      };
+    },
+    onRemove: (key) => {
+      delete globals[key];
+    },
   });
-
-  if (!PANE && pane) {
-    PANE = pane;
-  }
-
-  useEffect(() => {
-    if (pane !== null) {
-      const folder = pane.addFolder({ title: "Global Variables" });
-      FOLDER = folder;
-      const addBtn = pane.addButton({ title: "Add Variable" });
-      addBtn.on("click", () => {
-        const key = crypto.randomUUID().slice(0, 6);
-        globals[key] = {
-          type: "string",
-          value: "",
-          name: key,
-        };
-        if (FOLDER) {
-          FOLDER.addBinding(globals, key, { view: "variable-entry" });
-        }
-      });
-    }
-  }, [pane]);
 
   return (
     <div

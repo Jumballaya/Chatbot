@@ -6,8 +6,10 @@ export class VariableEntryView implements View {
   public readonly nameInput: HTMLInputElement;
   public readonly typeSelect: HTMLSelectElement;
   public readonly valueInput: HTMLInputElement;
+  public readonly removeButton: HTMLButtonElement;
 
   public onChange?: (next: Partial<VariableEntry>) => void;
+  public onRemove?: () => void;
 
   constructor(
     doc: Document,
@@ -36,6 +38,10 @@ export class VariableEntryView implements View {
     this.valueInput = doc.createElement("input");
     this.valueInput.value = String(value.rawValue.value ?? "");
 
+    this.removeButton = doc.createElement("button");
+    this.removeButton.textContent = "×";
+    this.removeButton.title = "Remove variable";
+
     // Event bindings
     this.nameInput.addEventListener("input", () => {
       this.onChange?.({ name: this.nameInput.value });
@@ -57,12 +63,21 @@ export class VariableEntryView implements View {
       this.onChange?.({ value: parsed });
     });
 
+    this.removeButton.addEventListener("click", () => {
+      this.onRemove?.();
+    });
+
     value.emitter.on("change", () => {
       this.nameInput.value = value.rawValue.name;
       this.typeSelect.value = value.rawValue.type;
       this.valueInput.value = String(value.rawValue.value ?? "");
     });
 
-    this.element.append(this.nameInput, this.typeSelect, this.valueInput);
+    this.element.append(
+      this.nameInput,
+      this.typeSelect,
+      this.valueInput,
+      this.removeButton
+    );
   }
 }

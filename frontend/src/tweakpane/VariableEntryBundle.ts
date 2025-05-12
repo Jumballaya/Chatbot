@@ -31,6 +31,27 @@ const VariableEntryBundle = {
       width: 100px;
       width: 33%;
     }
+
+    .tp-variable-entry button {
+      border: none;
+      background: #999;
+      color: #333;
+      cursor: pointer;
+      padding: 2px;
+      font-weight: bold;
+      margin: 3px;
+      width: 18px;
+      max-width: 18px;
+      height: 18px;
+      margin-left: 4px;
+      border-radius: 50%;
+      align-self: center;
+    }
+
+    .tp-variable-entry button:hover {
+      background: #666;
+      color: #aaa;
+    }
   `,
 };
 

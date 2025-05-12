@@ -14,6 +14,8 @@ export class VariableEntryController
     config: {
       value: Value<VariableEntry>;
       viewProps: ViewProps;
+      onUpdate?: (v: VariableEntry) => void;
+      onRemove?: () => void;
     }
   ) {
     this.value = config.value;
@@ -25,10 +27,16 @@ export class VariableEntryController
     });
 
     this.view.onChange = (update) => {
-      this.value.rawValue = {
+      const next = {
         ...this.value.rawValue,
         ...update,
       };
+      this.value.rawValue = next;
+      config.onUpdate?.(next);
+    };
+
+    this.view.onRemove = () => {
+      config.onRemove?.();
     };
   }
 }
