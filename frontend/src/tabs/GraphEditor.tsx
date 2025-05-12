@@ -6,6 +6,10 @@ import { shallow } from "zustand/shallow";
 import StringNodeComponent from "../components/graph/StringNodeComponent";
 import NumberNodeComponent from "../components/graph/NumberNodeComponent";
 import { useUIStore } from "../state/uiStore";
+import PromptNodeComponent from "../components/graph/PromptNodeComponent";
+import GlobalVariableNodeComponent from "../components/graph/GlobalVariableNodeComponent";
+import LLMNodeComponent from "../components/graph/LLMNodeComponent";
+import OutputNodeComponent from "../components/graph/OutputNodeComponent";
 
 const graphSelector = (store: GraphState) => ({
   nodes: store.nodes,
@@ -18,6 +22,10 @@ const graphSelector = (store: GraphState) => ({
 const nodeTypes = {
   string: StringNodeComponent,
   number: NumberNodeComponent,
+  prompt: PromptNodeComponent,
+  variable: GlobalVariableNodeComponent,
+  llm: LLMNodeComponent,
+  out: OutputNodeComponent,
 };
 
 export function GraphEditorTab() {

@@ -1,4 +1,4 @@
-import { ChatModel } from "../state/chatStore";
+import React from "react";
 
 export type SelectOption = {
   key: string;
@@ -8,8 +8,8 @@ export type SelectOption = {
 type Props = {
   label: string;
   value: string;
-  onChange: (value: ChatModel) => void;
   options: SelectOption[];
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   placeholder?: string;
   disabled?: boolean;
 };
@@ -31,16 +31,20 @@ export default function Select({
   const id = `select-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
-    <div className="flex items-center space-x-2">
-      <span className="text-sm text-zinc-600 dark:text-zinc-400">{label}:</span>
+    <div className="flex items-center space-x-2 w-full">
+      {label && (
+        <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          {label}:
+        </span>
+      )}
 
       <select
         id={id}
         name={id}
         disabled={disabled}
         value={value}
-        onChange={(e) => onChange(e.target.value as ChatModel)}
-        className={`h-8 px-3 rounded-md text-sm border cursor-pointer ${
+        onChange={onChange}
+        className={`h-6 px-1 rounded-md text-sm border cursor-pointer w-full ${
           disabled ? classes.disabled : classes.primary
         }`}
       >
@@ -51,7 +55,7 @@ export default function Select({
         )}
         {options.map(({ key, value: val }) => (
           <option key={`${label}-${key}-${val}`} value={val}>
-            {val}
+            {key}
           </option>
         ))}
       </select>

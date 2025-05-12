@@ -39,8 +39,11 @@ export interface GraphState {
 
 export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
   nodes: [
-    { type: "string", id: "a", data: {}, position: { x: 0, y: 0 } },
-    { type: "number", id: "b", data: {}, position: { x: 50, y: 50 } },
+    { type: "prompt", id: "a", data: {}, position: { x: 100, y: 100 } },
+    { type: "variable", id: "b", data: {}, position: { x: 100, y: 100 } },
+    { type: "variable", id: "c", data: {}, position: { x: 100, y: 100 } },
+    { type: "out", id: "d", data: {}, position: { x: 100, y: 100 } },
+    { type: "llm", id: "e", data: {}, position: { x: 100, y: 100 } },
   ],
   edges: [],
 
