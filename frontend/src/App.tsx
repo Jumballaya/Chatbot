@@ -1,6 +1,5 @@
 import Header from "./components/Header";
 import SettingsModal from "./components/SettingsModal";
-import { useChatStore } from "./state/chatStore";
 import { useUIStore } from "./state/uiStore";
 import { ChatTab } from "./tabs/Chat";
 import FileEditorTab from "./tabs/FileEditor";
@@ -9,7 +8,7 @@ import { GraphEditorTab } from "./tabs/GraphEditor";
 // set darkmode here
 
 export default function App() {
-  const darkMode = useChatStore((s) => s.darkMode);
+  const darkMode = useUIStore((s) => s.darkMode);
   const mode = useUIStore((s) => s.mode);
 
   return (

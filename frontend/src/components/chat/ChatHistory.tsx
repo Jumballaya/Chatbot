@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
-import { MarkdownViewer } from "../MarkdownViewer";
+import { MarkdownViewer } from "./MarkdownViewer";
 import {
   ChatRole,
   ChatStatus,
   ChatType,
   useChatStore,
-} from "../state/chatStore";
-import Image from "./Image";
+} from "../../state/chatStore";
+import Image from "../basic/Image";
 
 const $main =
   "flex-1 overflow-y-auto scrollbar-thin dark:scrollbar-thumb-zinc-400 dark:scrollbar-track-zinc-950 dark:scrollbar-thumb-zinc-600 dark:scrollbar-track-zinc-800 dark:scrollbar-thumb-zinc-700";

@@ -22,14 +22,12 @@ export interface ChatState {
   responses: ChatEntry[];
   loading: boolean;
   systemPrompt: string;
-  darkMode: boolean;
   error?: string;
 
   settingsActive: boolean;
 
   setSystemPrompt: (systemPrompt: string) => void;
   setSettingsActive: (active: boolean) => void;
-  setDarkMode: (darkMode: boolean) => void;
 
   addEntry: (entry: Omit<ChatEntry, "timestamp">) => void;
   updateEntry: (id: string, patch: Partial<ChatEntry>) => void;
@@ -39,14 +37,12 @@ export interface ChatState {
 
 const STORAGE_KEY = "chat-history";
 const SYSTEM_PROMPT_KEY = "chat-system-prompt";
-const DARKMODE_KEY = "char-darkmode";
 
 export const useChatStore = create<ChatState>((set, get) => ({
   responses: JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"),
   loading: false,
   error: undefined,
   settingsActive: false,
-  darkMode: JSON.parse(localStorage.getItem(DARKMODE_KEY) || "true"),
 
   systemPrompt:
     localStorage.getItem(SYSTEM_PROMPT_KEY) || "You are a friendly assistant",
@@ -55,10 +51,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ systemPrompt });
   },
   setSettingsActive: (settingsActive: boolean) => set({ settingsActive }),
-  setDarkMode: (darkMode: boolean) => {
-    localStorage.setItem(DARKMODE_KEY, JSON.stringify(darkMode));
-    set({ darkMode });
-  },
 
   addEntry: (entry: Omit<ChatEntry, "timestamp">) => {
     const newEntry = {

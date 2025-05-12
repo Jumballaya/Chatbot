@@ -3,8 +3,10 @@ import { Background, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { GraphState, useGraphStore } from "../state/graphStore";
 import { shallow } from "zustand/shallow";
+import StringNodeComponent from "../components/graph/StringNodeComponent";
+import { useUIStore } from "../state/uiStore";
 
-const selector = (store: GraphState) => ({
+const graphSelector = (store: GraphState) => ({
   nodes: store.nodes,
   edges: store.edges,
   onNodesChange: store.onNodesChange,
@@ -12,16 +14,23 @@ const selector = (store: GraphState) => ({
   addEdge: store.addEdge,
 });
 
+const nodeTypes = {
+  string: StringNodeComponent,
+};
+
 export function GraphEditorTab() {
-  const store = useGraphStore(selector, shallow);
+  const graphStore = useGraphStore(graphSelector, shallow);
+  const darkMode = useUIStore((s) => s.darkMode);
 
   return (
     <ReactFlow
-      nodes={store.nodes}
-      edges={store.edges}
-      onNodesChange={store.onNodesChange}
-      onEdgesChange={store.onEdgesChange}
-      onConnect={store.addEdge}
+      colorMode={darkMode ? "dark" : "light"}
+      nodeTypes={nodeTypes}
+      nodes={graphStore.nodes}
+      edges={graphStore.edges}
+      onNodesChange={graphStore.onNodesChange}
+      onEdgesChange={graphStore.onEdgesChange}
+      onConnect={graphStore.addEdge}
     >
       <Background />
     </ReactFlow>

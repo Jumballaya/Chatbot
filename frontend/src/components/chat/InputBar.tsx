@@ -1,6 +1,6 @@
 import { useState } from "react";
-import TextArea from "./TextArea";
-import { useChatStore } from "../state/chatStore";
+import TextArea from "../basic/TextArea";
+import { useChatStore } from "../../state/chatStore";
 
 export default function InputBar() {
   const [prompt, setPrompt] = useState("");

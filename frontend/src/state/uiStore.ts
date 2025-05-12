@@ -2,9 +2,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type AppMode = "graph-editor" | "agent-chat" | "file-editor";
-type UIState = {
+export type UIState = {
   mode: AppMode;
   title: string;
+  darkMode: boolean;
+  setDarkMode: (darkMode: boolean) => void;
 
   setMode(mode: AppMode): void;
 };
@@ -14,6 +16,8 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       mode: "agent-chat",
       title: "Chat",
+      darkMode: true,
+
       setMode: (mode) => {
         let title = get().title;
         switch (mode) {
@@ -30,6 +34,10 @@ export const useUIStore = create<UIState>()(
           }
         }
         set({ mode, title });
+      },
+
+      setDarkMode: (darkMode: boolean) => {
+        set({ darkMode });
       },
     }),
     { name: "ui-storage" }

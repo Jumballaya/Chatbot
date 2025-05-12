@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useChatStore } from "../state/chatStore";
-import Button from "./Button";
+import Button from "./basic/Button";
+import { useUIStore } from "../state/uiStore";
 
 export default function SettingsModal() {
   const [settings, setSettings] = useState("");
@@ -9,8 +10,8 @@ export default function SettingsModal() {
   const settingsActive = useChatStore((s) => s.settingsActive);
   const systemPrompt = useChatStore((s) => s.systemPrompt);
   const setSystemPrompt = useChatStore((s) => s.setSystemPrompt);
-  const darkMode = useChatStore((s) => s.darkMode);
-  const setDarkMode = useChatStore((s) => s.setDarkMode);
+  const darkMode = useUIStore((s) => s.darkMode);
+  const setDarkMode = useUIStore((s) => s.setDarkMode);
 
   useEffect(() => {
     setSettings(systemPrompt);
