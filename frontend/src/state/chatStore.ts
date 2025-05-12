@@ -22,16 +22,12 @@ export interface ChatState {
   responses: ChatEntry[];
   loading: boolean;
   systemPrompt: string;
-  aiModel: "" | ChatModel;
-  modelList: ChatModel[];
   darkMode: boolean;
   error?: string;
 
   settingsActive: boolean;
 
   setSystemPrompt: (systemPrompt: string) => void;
-  setAiModel: (model: ChatModel) => void;
-  setModelList: (list: ChatModel[]) => void;
   setSettingsActive: (active: boolean) => void;
   setDarkMode: (darkMode: boolean) => void;
 
@@ -42,7 +38,6 @@ export interface ChatState {
 }
 
 const STORAGE_KEY = "chat-history";
-const MODEL_KEY = "chat-model";
 const SYSTEM_PROMPT_KEY = "chat-system-prompt";
 const DARKMODE_KEY = "char-darkmode";
 
@@ -53,19 +48,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
   settingsActive: false,
   darkMode: JSON.parse(localStorage.getItem(DARKMODE_KEY) || "true"),
 
-  modelList: [],
-  aiModel: (localStorage.getItem(MODEL_KEY) as ChatModel) ?? "gemma3:4b",
   systemPrompt:
     localStorage.getItem(SYSTEM_PROMPT_KEY) || "You are a friendly assistant",
   setSystemPrompt: (systemPrompt) => {
     localStorage.setItem(SYSTEM_PROMPT_KEY, systemPrompt);
     set({ systemPrompt });
   },
-  setAiModel: (aiModel: ChatModel) => {
-    localStorage.setItem(MODEL_KEY, aiModel);
-    set({ aiModel });
-  },
-  setModelList: (modelList: ChatModel[]) => set({ modelList }),
   setSettingsActive: (settingsActive: boolean) => set({ settingsActive }),
   setDarkMode: (darkMode: boolean) => {
     localStorage.setItem(DARKMODE_KEY, JSON.stringify(darkMode));
@@ -93,8 +81,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   fetchResponse: async (prompt: string) => {
     const state = get();
-    if (!state.aiModel) return;
-    console.log(state.aiModel);
 
     set({ error: undefined, loading: true });
 
@@ -105,7 +91,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       type: "text",
     });
 
-    const needsImage = await decideImage(prompt, state.aiModel);
+    const needsImage = await decideImage(prompt, "gemma3:4b");
     const assistantId = crypto.randomUUID();
 
     if (needsImage) {
@@ -119,7 +105,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       });
 
       try {
-        const imageDetails = await extractImageDetails(prompt, state.aiModel);
+        const imageDetails = await extractImageDetails(prompt, "gemma3:4b");
         console.log(imageDetails);
         for await (const frame of generateImage(imageDetails)) {
           state.updateEntry(assistantId, {
@@ -148,7 +134,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           ...get().responses.map(({ role, content }) => ({ role, content })),
         ];
         let final = "";
-        for await (const partial of initiatePrompt(messages, state.aiModel)) {
+        for await (const partial of initiatePrompt(messages, "gemma3:4b")) {
           final = partial;
           state.updateEntry(assistantId, {
             content: partial,

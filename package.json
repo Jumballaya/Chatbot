@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@xyflow/react": "^12.6.0",
+    "nanoid": "^5.1.5"
+  }
+}
