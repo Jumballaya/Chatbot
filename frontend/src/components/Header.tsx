@@ -1,12 +1,10 @@
 import { useChatStore } from "../state/chatStore";
+import { useUIStore } from "../state/uiStore";
 import UIModeSwitcher from "./UIModeSwitcher";
 
-type HeaderProps = {
-  title: string;
-};
-
-export default function Header(props: HeaderProps) {
+export default function Header() {
   const setSettingsActive = useChatStore((s) => s.setSettingsActive);
+  const title = useUIStore((s) => s.title);
 
   return (
     <header className="h-16 w-full shrink-0 flex items-center justify-between px-4 border-b dark:border-zinc-800 border-zinc-300">
@@ -17,7 +15,7 @@ export default function Header(props: HeaderProps) {
         >
           ⚙️
         </span>{" "}
-        {props.title}
+        {title}
       </h1>
 
       <UIModeSwitcher />

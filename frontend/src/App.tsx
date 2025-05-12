@@ -5,7 +5,7 @@ import { ChatTab } from "./tabs/Chat";
 import FileEditorTab from "./tabs/FileEditor";
 import { GraphEditorTab } from "./tabs/GraphEditor";
 
-// set darkmode here
+// set darkmode here on the conrainer div
 
 export default function App() {
   const darkMode = useUIStore((s) => s.darkMode);
@@ -18,7 +18,7 @@ export default function App() {
       } h-screen flex flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
     >
       <SettingsModal />
-      <Header title="Chat" />
+      <Header />
       {mode === "agent-chat" && <ChatTab />}
       {mode === "graph-editor" && <GraphEditorTab />}
       {mode === "file-editor" && <FileEditorTab />}

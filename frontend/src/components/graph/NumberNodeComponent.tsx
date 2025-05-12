@@ -1,24 +1,24 @@
 import { Handle, Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
+import NumberInput from "./inputs/NumberInput";
 import { useState } from "react";
-import StringInput from "./inputs/StringInput";
 
-export default function StringNodeComponent() {
-  const [val, setVal] = useState("");
+export default function NumberNodeComponent() {
+  const [val, setVal] = useState(0);
 
   return (
-    <BaseNodeComponent title="String">
+    <BaseNodeComponent title="Number">
       <div className="relative px-1 py-0.5 space-y-0.5">
-        <StringInput
-          label="String"
+        <NumberInput
+          label="Number"
           value={val}
-          onChange={(e) => setVal(e.target.value)}
+          onChange={(e) => setVal(parseFloat(e.target.value))}
         />
         <Handle
-          id="string"
+          id="number"
           type="source"
           position={Position.Right}
-          className="w-3 h-3 bg-red"
+          className="w-5 h-5"
         />
       </div>
     </BaseNodeComponent>

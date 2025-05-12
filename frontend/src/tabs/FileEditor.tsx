@@ -1,3 +1,7 @@
 export default function FileEditorTab() {
-  return <h1>File Editor</h1>;
+  return (
+    <main>
+      <h1>File Editor</h1>
+    </main>
+  );
 }

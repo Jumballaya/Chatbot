@@ -4,6 +4,7 @@ import "@xyflow/react/dist/style.css";
 import { GraphState, useGraphStore } from "../state/graphStore";
 import { shallow } from "zustand/shallow";
 import StringNodeComponent from "../components/graph/StringNodeComponent";
+import NumberNodeComponent from "../components/graph/NumberNodeComponent";
 import { useUIStore } from "../state/uiStore";
 
 const graphSelector = (store: GraphState) => ({
@@ -16,6 +17,7 @@ const graphSelector = (store: GraphState) => ({
 
 const nodeTypes = {
   string: StringNodeComponent,
+  number: NumberNodeComponent,
 };
 
 export function GraphEditorTab() {
