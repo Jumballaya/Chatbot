@@ -1,7 +1,9 @@
+import { Background, ReactFlow } from "@xyflow/react";
+
 export function GraphEditorTab() {
   return (
-    <div>
-      <h1>Graph Editor!</h1>
-    </div>
+    <ReactFlow>
+      <Background />
+    </ReactFlow>
   );
 }
