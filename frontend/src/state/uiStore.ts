@@ -20,7 +20,6 @@ export const useUIStore = create<UIState>()(
 
       setMode: (mode) => {
         let title = get().title;
-        console.log(mode);
         switch (mode) {
           case "agent-chat": {
             title = "Chatbot";

@@ -1,11 +1,136 @@
 import { Handle, Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StringInput from "../inputs/StringInput";
 import DropdownInput from "../inputs/DropdownInput";
+import { GraphState, useGraphStore } from "../../../state/graphStore";
+import { shallow } from "zustand/shallow";
 
-export default function LLMNodeComponent() {
+export type LLMNodeProps = {
+  id: string;
+  data: {
+    sources: {
+      prompt: {
+        connected: boolean;
+        type: "string";
+        value: string;
+      };
+      model: {
+        connected: boolean;
+        type: "string";
+        value: string;
+      };
+      system: {
+        connected: boolean;
+        type: "string";
+        value: string;
+      };
+      stream: {
+        connected: boolean;
+        type: "boolean";
+        value: boolean;
+      };
+    };
+
+    targets: {
+      llm_output: {
+        connected: boolean;
+        type: "string";
+        value: string;
+      };
+    };
+  };
+};
+
+const selector = (id: string) => (store: GraphState) => ({
+  setPrompt: (prompt: string) => {
+    const node = store.nodes.find((v) => v.id === id);
+    if (!node) return;
+    store.updateNode(id, {
+      ...node.data,
+      sources: {
+        ...(node.data.sources as object),
+        prompt: {
+          ...((node.data.sources as any).prompt as object),
+          value: prompt,
+        },
+      },
+    });
+  },
+
+  setModel: (model: string) => {
+    const node = store.nodes.find((v) => v.id === id);
+    if (!node) return;
+    store.updateNode(id, {
+      ...node.data,
+      sources: {
+        ...(node.data.sources as object),
+        model: {
+          ...((node.data.sources as any).model as object),
+          value: model,
+        },
+      },
+    });
+  },
+
+  setStream: (stream: boolean) => {
+    const node = store.nodes.find((v) => v.id === id);
+    if (!node) return;
+    store.updateNode(id, {
+      ...node.data,
+      sources: {
+        ...(node.data.sources as object),
+        stream: {
+          ...((node.data.sources as any).stream as object),
+          value: stream,
+        },
+      },
+    });
+  },
+
+  setSystem: (system: string) => {
+    const node = store.nodes.find((v) => v.id === id);
+    if (!node) return;
+    store.updateNode(id, {
+      ...node.data,
+      sources: {
+        ...(node.data.sources as object),
+        system: {
+          ...((node.data.sources as any).system as object),
+          value: system,
+        },
+      },
+    });
+  },
+
+  setOutput: (llm_output: string) => {
+    const node = store.nodes.find((v) => v.id === id);
+    if (!node) return;
+    store.updateNode(id, {
+      ...node.data,
+      targets: {
+        ...(node.data.targets as object),
+        llm_output: {
+          ...((node.data.targets as any).llm_output as object),
+          value: llm_output,
+        },
+      },
+    });
+  },
+});
+
+export default function LLMNodeComponent(props: LLMNodeProps) {
   const [val, setVal] = useState("");
+  const node = useGraphStore(selector(props.id), shallow);
+
+  const prompt = props.data.sources.prompt.value;
+  const promptConnected = props.data.sources.prompt.connected;
+  useEffect(() => {
+    setVal(prompt);
+    if (promptConnected) {
+      node.setPrompt(prompt);
+    }
+  }, [prompt, promptConnected]);
 
   return (
     <BaseNodeComponent title="LLM">
@@ -26,7 +151,7 @@ export default function LLMNodeComponent() {
         />
       </div>
       <div className="relative px-1 py-0.5 space-y-0.5">
-        <Handle id="prompt_in" type="target" position={Position.Left} />
+        <Handle id="prompt" type="target" position={Position.Left} />
         <StringInput
           label="prompt"
           value={val}

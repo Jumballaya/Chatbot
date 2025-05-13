@@ -7,24 +7,68 @@ import { GraphState, useGraphStore } from "../../../state/graphStore";
 export type PromptNodeProps = {
   id: string;
   data: {
-    input: string;
-    prompt: string;
+    sources: {
+      input: {
+        connected: boolean;
+        type: "string";
+        value: string;
+      };
+    };
+
+    targets: {
+      prompt: {
+        connected: boolean;
+        type: "string";
+        value: string;
+      };
+    };
   };
 };
 
 const selector = (id: string) => (store: GraphState) => ({
-  setPrompt: (prompt: string) => store.updateNode(id, { prompt }),
-  seInput: (input: string) => store.updateNode(id, { input }),
+  setInput: (input: string) => {
+    const node = store.nodes.find((v) => v.id === id);
+    if (!node) return;
+    store.updateNode(id, {
+      ...node.data,
+      sources: {
+        ...(node.data.sources as object),
+        input: {
+          ...((node.data.sources as any).input as object),
+          value: input,
+        },
+      },
+    });
+  },
+
+  setPrompt: (prompt: string) => {
+    const node = store.nodes.find((v) => v.id === id);
+    if (!node) return;
+    store.updateNode(id, {
+      ...node.data,
+      targets: {
+        ...(node.data.targets as object),
+        prompt: {
+          ...((node.data.targets as any).prompt as object),
+          value: prompt,
+        },
+      },
+    });
+  },
 });
 
 export default function PromptNodeComponent(props: PromptNodeProps) {
-  const [val, setVal] = useState(props.data.input ?? "");
+  const [val, setVal] = useState(props.data.sources.input.value ?? "");
   const node = useGraphStore(selector(props.id));
 
-  const prompt = props.data.input;
+  const prompt = props.data.sources.input.value;
+  const promptConnected = props.data.sources.input.connected;
   useEffect(() => {
     setVal(prompt);
-  }, [prompt]);
+    if (promptConnected) {
+      node.setPrompt(prompt);
+    }
+  }, [prompt, promptConnected]);
 
   return (
     <BaseNodeComponent title="Prompt">

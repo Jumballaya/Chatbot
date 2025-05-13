@@ -57,7 +57,6 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
   },
 
   onEdgesChange(changes) {
-    console.log(changes);
     set({
       edges: applyEdgeChanges(changes, get().edges),
     });
@@ -71,7 +70,13 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type: "out",
           id,
           data: {
-            text: "",
+            sources: {
+              text: {
+                connected: false,
+                type: "string",
+                value: "",
+              },
+            },
           },
           position: { x: 100, y: 100 },
         };
@@ -83,7 +88,20 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type,
           id,
           data: {
-            prompt: "",
+            sources: {
+              input: {
+                type: "string",
+                value: "",
+                connected: false,
+              },
+            },
+            targets: {
+              prompt: {
+                type: "string",
+                value: "",
+                connected: false,
+              },
+            },
           },
           position: { x: 100, y: 100 },
         };
@@ -95,9 +113,36 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type,
           id,
           data: {
-            model: "",
-            system: "",
-            stream: false,
+            sources: {
+              prompt: {
+                connected: false,
+                type: "string",
+                value: "",
+              },
+              model: {
+                connected: false,
+                type: "string",
+                value: "",
+              },
+              system: {
+                connected: false,
+                type: "string",
+                value: "",
+              },
+              stream: {
+                connected: false,
+                type: "boolean",
+                value: false,
+              },
+            },
+
+            targets: {
+              llm_output: {
+                connected: false,
+                type: "string",
+                value: "",
+              },
+            },
           },
           position: { x: 100, y: 100 },
         };
@@ -109,7 +154,20 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type,
           id,
           data: {
-            variableName: "",
+            sources: {
+              variableName: {
+                connected: false,
+                type: "string",
+                value: "",
+              },
+            },
+            targets: {
+              output: {
+                connected: false,
+                type: "string",
+                value: "",
+              },
+            },
           },
           position: { x: 100, y: 100 },
         };
@@ -131,10 +189,19 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const state = get();
     const source = state.nodes.find((n) => n.id === data.source);
     const target = state.nodes.find((n) => n.id === data.target);
+
+    console.log(data, source, target);
     if (source && target && data.sourceHandle && data.targetHandle) {
-      const value = source.data[data.sourceHandle];
+      const value = (source.data.targets as any)[data.sourceHandle].value;
       state.updateNode(target.id, {
-        [data.targetHandle]: value,
+        sources: {
+          ...(target.data.sources as any),
+          [data.targetHandle]: {
+            ...(target.data.sources as any)[data.targetHandle],
+            connected: true,
+            value,
+          },
+        },
       });
     }
 

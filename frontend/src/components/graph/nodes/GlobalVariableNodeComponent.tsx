@@ -9,14 +9,45 @@ import { shallow } from "zustand/shallow";
 export type VariableNodeProps = {
   id: string;
   data: {
-    variableName: string;
-    string: string;
+    sources: {
+      variableName: {
+        connected: boolean;
+        type: "string";
+        value: string;
+      };
+    };
+
+    targets: {
+      output: {
+        connected: boolean;
+        type: "string" | "number" | "boolean";
+        value: string | number | boolean;
+      };
+    };
   };
 };
 
 const selector = (id: string) => (store: GraphState) => ({
-  setVariable: (variableName: string, string: string) =>
-    store.updateNode(id, { variableName, string }),
+  setVariable: (variableName: string, output: string | number | boolean) => {
+    const node = store.nodes.find((v) => v.id === id);
+    if (!node) return;
+    store.updateNode(id, {
+      sources: {
+        ...(node.data.sources as any),
+        variableName: {
+          ...((node.data.sources as any).variableName as any),
+          value: variableName,
+        },
+      },
+      targets: {
+        ...(node.data.targets as any),
+        output: {
+          ...((node.data.targets as any).output as any),
+          value: output,
+        },
+      },
+    });
+  },
   getVariableList: store.getVariableList,
 });
 
@@ -26,6 +57,7 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
     selector(props.id),
     shallow
   );
+
   const varValue =
     getVariableList().filter((v) => v.id === value)[0]?.value ?? "";
   return (
@@ -58,7 +90,7 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
           </div>
         </div>
         <Handle
-          id="string"
+          id="output"
           type="source"
           position={Position.Right}
           className="w-3 h-3 bg-red"

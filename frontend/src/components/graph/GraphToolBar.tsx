@@ -16,7 +16,6 @@ export default function GraphToolBar() {
             variant="primary"
             size="sm"
             onClick={() => {
-              console.log("Create Prompt Node");
               createNode("prompt");
             }}
           />
@@ -27,7 +26,6 @@ export default function GraphToolBar() {
             variant="primary"
             size="sm"
             onClick={() => {
-              console.log("Create LLM Node");
               createNode("llm");
             }}
           />
@@ -38,7 +36,6 @@ export default function GraphToolBar() {
             variant="primary"
             size="sm"
             onClick={() => {
-              console.log("Create Output Node");
               createNode("output");
             }}
           />
@@ -49,7 +46,6 @@ export default function GraphToolBar() {
             variant="primary"
             size="sm"
             onClick={() => {
-              console.log("Create Variable Node");
               createNode("variable");
             }}
           />
