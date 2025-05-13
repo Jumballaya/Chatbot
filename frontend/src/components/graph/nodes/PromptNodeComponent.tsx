@@ -3,25 +3,14 @@ import BaseNodeComponent from "./BaseNodeComponent";
 import { useEffect, useState } from "react";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
+import ControlledInput from "../inputs/ControlledInput";
+import { Port } from "../../../graph/types";
 
 export type PromptNodeProps = {
   id: string;
   data: {
-    sources: {
-      input: {
-        connected: boolean;
-        type: "string";
-        value: string;
-      };
-    };
-
-    targets: {
-      prompt: {
-        connected: boolean;
-        type: "string";
-        value: string;
-      };
-    };
+    sources: { input: Port<"string"> };
+    targets: { prompt: Port<"string"> };
   };
 };
 
@@ -79,14 +68,19 @@ export default function PromptNodeComponent(props: PromptNodeProps) {
           position={Position.Left}
           className="w-3 h-3 bg-red"
         />
-        <StringInput
-          label="prompt"
-          value={val}
-          onChange={(e) => {
-            setVal(e.target.value);
-            node.setPrompt(e.target.value);
-          }}
-        />
+        {promptConnected ? (
+          <ControlledInput name="prompt" value={prompt} />
+        ) : (
+          <StringInput
+            label="prompt"
+            value={val}
+            onChange={(e) => {
+              setVal(e.target.value);
+              node.setPrompt(e.target.value);
+            }}
+          />
+        )}
+
         <Handle
           id="prompt"
           type="source"

@@ -40,6 +40,16 @@ export default function GraphToolBar() {
             }}
           />
         </li>
+        <li className="mr-2">
+          <Button
+            label="Number"
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              createNode("number");
+            }}
+          />
+        </li>
         <li>
           <Button
             label="Variable"

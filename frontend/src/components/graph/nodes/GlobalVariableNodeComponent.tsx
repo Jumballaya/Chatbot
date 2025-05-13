@@ -1,29 +1,17 @@
 import { Handle, Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
-import StringInput from "../inputs/StringInput";
 import DropdownInput from "../inputs/DropdownInput";
 import { useState } from "react";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
+import ControlledInput from "../inputs/ControlledInput";
+import { Port } from "../../../graph/types";
 
 export type VariableNodeProps = {
   id: string;
   data: {
-    sources: {
-      variableName: {
-        connected: boolean;
-        type: "string";
-        value: string;
-      };
-    };
-
-    targets: {
-      output: {
-        connected: boolean;
-        type: "string" | "number" | "boolean";
-        value: string | number | boolean;
-      };
-    };
+    sources: { variableName: Port<"string"> };
+    targets: { output: Port<"any"> };
   };
 };
 
@@ -86,7 +74,7 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
             />
           </div>
           <div className="flex-grow flex-1 flex items-center">
-            <StringInput label="" value={varValue.toString()} disabled={true} />
+            <ControlledInput name="" value={varValue} />
           </div>
         </div>
         <Handle

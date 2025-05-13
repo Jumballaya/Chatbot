@@ -24,6 +24,7 @@ import {
 } from "./types";
 import { validateGraph } from "./validators";
 import { VariableNode } from "./nodes/VariableNode";
+import { NumberNode } from "./nodes/NumberNode";
 
 type GenericNode = GraphNode<GraphNodeType>;
 
@@ -78,6 +79,13 @@ export class ExecutionGraph {
       case "string": {
         const { name, retry, onComplete } = config;
         const node = new StringNode(name, retry, onComplete);
+        if (this.root === "") this.root = node.id;
+        this.nodes.set(node.id, node);
+        break;
+      }
+      case "number": {
+        const { name, retry, onComplete } = config;
+        const node = new NumberNode(name, retry, onComplete);
         if (this.root === "") this.root = node.id;
         this.nodes.set(node.id, node);
         break;

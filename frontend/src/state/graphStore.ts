@@ -20,6 +20,7 @@ export interface GraphState {
 
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
+  onEdgesDelete: (edges: Edge[]) => void;
   addEdge: (conn: Connection) => void;
 
   updateNode: (id: string, partial: Data) => void;
@@ -174,6 +175,24 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
         set({ nodes: [...get().nodes, node] });
         break;
       }
+      case "number": {
+        const node = {
+          type,
+          id,
+          data: {
+            targets: {
+              number: {
+                connected: false,
+                type: "number",
+                value: 0,
+              },
+            },
+          },
+          position: { x: 100, y: 100 },
+        };
+        set({ nodes: [...get().nodes, node] });
+        break;
+      }
     }
   },
 
@@ -190,7 +209,6 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const source = state.nodes.find((n) => n.id === data.source);
     const target = state.nodes.find((n) => n.id === data.target);
 
-    console.log(data, source, target);
     if (source && target && data.sourceHandle && data.targetHandle) {
       const value = (source.data.targets as any)[data.sourceHandle].value;
       state.updateNode(target.id, {
@@ -208,6 +226,31 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const id = nanoid(6);
     const edge = { id, ...data };
     set({ edges: [edge, ...state.edges] });
+  },
+
+  onEdgesDelete(deleted) {
+    const state = get();
+    for (const edge of deleted) {
+      console.log(edge);
+      const { targetHandle } = edge;
+      const target = state.nodes.find((n) => n.id === edge.target);
+      if (target && targetHandle) {
+        state.updateNode(target.id, {
+          sources: {
+            ...(target.data.sources as any),
+            [targetHandle]: {
+              ...(target.data.sources as any)[targetHandle],
+              connected: false,
+              value: "",
+            },
+          },
+        });
+      }
+    }
+
+    set((s) => ({
+      edges: s.edges.filter((e) => !deleted.some((d) => d.id === e.id)),
+    }));
   },
 
   compileGraph(id) {

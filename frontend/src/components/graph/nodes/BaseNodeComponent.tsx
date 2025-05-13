@@ -1,11 +1,8 @@
-import { Position } from "@xyflow/react";
 import type { ReactNode } from "react";
 
 type BaseNodeComponentProps = {
   title: string;
   children: ReactNode;
-  showHandle?: boolean;
-  handlePosition?: Position;
 };
 
 export default function BaseNodeComponent({

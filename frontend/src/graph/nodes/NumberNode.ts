@@ -9,8 +9,8 @@ import {
 import { GraphNode } from "../GraphNode";
 import { NodeContext } from "../NodeContext";
 
-export class StringNode extends GraphNode<"string"> {
-  private _string = "";
+export class NumberNode extends GraphNode<"string"> {
+  private _number = 0;
 
   constructor(
     name: string,
@@ -20,45 +20,40 @@ export class StringNode extends GraphNode<"string"> {
     super(name, "string", retryConfig, onComplete);
   }
 
-  public set string(s: string) {
-    this._string = s;
+  public set number(n: number) {
+    this._number = n;
   }
 
-  public get string() {
-    return this._string;
+  public get number() {
+    return this._number;
   }
 
   public inputs(): Record<string, InputPort> {
-    return {
-      input: {
-        type: "string",
-        default: "",
-      },
-    };
+    return {};
   }
 
   public outputs(): Record<string, OutputPort> {
     return {
-      string: {
-        type: "string",
+      number: {
+        type: "number",
       },
     };
   }
 
   public async *execute(
     context: NodeContext
-  ): AsyncIterable<ExecutionUpdate<{ string: string }>> {
-    context.setOutput("string", this._string);
+  ): AsyncIterable<ExecutionUpdate<{ number: number }>> {
+    context.setOutput("number", this._number);
     yield {
       status: NodeStatus.Completed,
-      output: { string: this._string },
+      output: { number: this._number },
       final: true,
       nodeId: this.id,
     };
   }
 
   public onComplete(
-    result: { string: string },
+    result: { number: number },
     context: NodeContext
   ): void | Promise<void> {
     this.onCompleteCB?.(result, context);

@@ -11,6 +11,7 @@ export type GraphNodeType =
   | "tool-call"
   | "tool"
   | "string"
+  | "number"
   | "variable";
 export type ComparisonOp =
   | "eq" // number compare
@@ -32,7 +33,19 @@ export interface VariableDef {
   value: VariableValue;
 }
 
+export type Port<T extends IOType> = {
+  connected: boolean;
+  type: T;
+  value: IOTypeMap[T];
+};
+
 export type IOType = "string" | "number" | "boolean" | "any";
+export type IOTypeMap = {
+  string: string;
+  number: number;
+  boolean: boolean;
+  any: any;
+};
 export type InputPort = {
   type: IOType;
   required?: boolean;
@@ -149,12 +162,14 @@ export type ToolNodeConfig = BaseNodeConfig & {
 };
 
 export type StringNodeConfig = BaseNodeConfig & { type: "string" };
+export type NumberNodeConfig = BaseNodeConfig & { type: "number" };
 export type PromptNodeConfig = BaseNodeConfig & { type: "prompt" };
 export type OutputNodeConfig = BaseNodeConfig & { type: "output" };
 export type VariableNodeConfig = BaseNodeConfig & { type: "variable" };
 
 export type NodeConfig =
   | StringNodeConfig
+  | NumberNodeConfig
   | PromptNodeConfig
   | LLMNodeConfig
   | IfNodeConfig
