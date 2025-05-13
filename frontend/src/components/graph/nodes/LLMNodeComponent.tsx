@@ -1,8 +1,8 @@
 import { Handle, Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import { useState } from "react";
-import StringInput from "./inputs/StringInput";
-import DropdownInput from "./inputs/DropdownInput";
+import StringInput from "../inputs/StringInput";
+import DropdownInput from "../inputs/DropdownInput";
 
 export default function LLMNodeComponent() {
   const [val, setVal] = useState("");

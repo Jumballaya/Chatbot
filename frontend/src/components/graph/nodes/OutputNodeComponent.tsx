@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import { useState } from "react";
-import StringInput from "./inputs/StringInput";
+import StringInput from "../inputs/StringInput";
 
 export default function OutputNodeComponent() {
   const [val, setVal] = useState("");

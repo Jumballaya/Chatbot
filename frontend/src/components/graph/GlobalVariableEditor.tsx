@@ -8,14 +8,13 @@ const styles = {
 };
 
 const selector = (s: GraphState) => ({
-  getGraph: s.getGraph,
-  activeGraphId: s.activeGraphId,
+  getActiveGraph: s.getActiveGraph,
 });
 
 export default function GlobalVariableEditor(props: { visible?: boolean }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const store = useGraphStore(selector);
-  const graph = store.getGraph(store.activeGraphId ?? "default");
+  const graph = store.getActiveGraph();
 
   useVariableFolder(ref, {
     title: "Global Variables",

@@ -1,15 +1,16 @@
-import { Background, ReactFlow } from "@xyflow/react";
+import { Background, Panel, ReactFlow } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 import { GraphState, useGraphStore } from "../state/graphStore";
 import { shallow } from "zustand/shallow";
-import StringNodeComponent from "../components/graph/StringNodeComponent";
-import NumberNodeComponent from "../components/graph/NumberNodeComponent";
+import StringNodeComponent from "../components/graph/nodes/StringNodeComponent";
+import NumberNodeComponent from "../components/graph/nodes/NumberNodeComponent";
 import { useUIStore } from "../state/uiStore";
-import PromptNodeComponent from "../components/graph/PromptNodeComponent";
-import GlobalVariableNodeComponent from "../components/graph/GlobalVariableNodeComponent";
-import LLMNodeComponent from "../components/graph/LLMNodeComponent";
-import OutputNodeComponent from "../components/graph/OutputNodeComponent";
+import PromptNodeComponent from "../components/graph/nodes/PromptNodeComponent";
+import GlobalVariableNodeComponent from "../components/graph/nodes/GlobalVariableNodeComponent";
+import LLMNodeComponent from "../components/graph/nodes/LLMNodeComponent";
+import OutputNodeComponent from "../components/graph/nodes/OutputNodeComponent";
+import GraphToolBar from "../components/graph/GraphToolBar";
 
 const graphSelector = (store: GraphState) => ({
   nodes: store.nodes,
@@ -42,6 +43,9 @@ export default function GraphEditorTab() {
       onEdgesChange={graphStore.onEdgesChange}
       onConnect={graphStore.addEdge}
     >
+      <Panel position="top-right">
+        <GraphToolBar />
+      </Panel>
       <Background />
     </ReactFlow>
   );

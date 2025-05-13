@@ -23,6 +23,7 @@ import {
   Data,
 } from "./types";
 import { validateGraph } from "./validators";
+import { VariableNode } from "./nodes/VariableNode";
 
 type GenericNode = GraphNode<GraphNodeType>;
 
@@ -36,6 +37,9 @@ export class ExecutionGraph {
   public nodes: Map<NodeId, GenericNode> = new Map();
   public edges: GraphEdge[] = [];
   private root: NodeId = "";
+  //  @TODO: maybe re-write root system this so we find
+  // the left-most node (the highest parent) or come up
+  // with a permanent root node and end node that come with all graphs?
 
   constructor() {
     this.variables = new Proxy(this._variables, {
@@ -130,7 +134,26 @@ export class ExecutionGraph {
         this.nodes.set(node.id, node);
         break;
       }
+
+      case "variable": {
+        const { name, retry, onComplete } = config;
+        const node = new VariableNode(name, retry, onComplete);
+        if (this.root === "") this.root = node.id;
+        this.nodes.set(node.id, node);
+        break;
+      }
     }
+  }
+
+  public removeNode(id: string) {
+    this.nodeExecutionContexts.delete(id);
+    this.nodes.delete(id);
+    if (this.root === id) {
+      this.root = "";
+    }
+    this.edges = this.edges.filter((e) => {
+      return e.fromNode !== id && e.toNode !== id;
+    });
   }
 
   public addEdge(edge: GraphEdge): void {
