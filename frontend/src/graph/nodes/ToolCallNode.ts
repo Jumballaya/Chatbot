@@ -11,7 +11,6 @@ import {
   InputPort,
 } from "../types";
 import { NodeContext } from "../NodeContext";
-import { ExecutionGraph } from "../ExecutionGraph";
 
 const ollama = new Ollama({ host: "http://localhost:11434" });
 

@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import { GraphNode } from "./GraphNode";
 import { NodeContext } from "./NodeContext";
 import { IfNode } from "./nodes/IfNode";
@@ -26,7 +27,7 @@ import { validateGraph } from "./validators";
 type GenericNode = GraphNode<GraphNodeType>;
 
 export class ExecutionGraph {
-  private _definitions: Map<string, VariableDef> = new Map();
+  private _definitions: Record<string, VariableDef> = {};
   private _variables: Record<string, VariableValue> = {};
 
   private nodeExecutionContexts = new Map<NodeId, NodeContext>();
@@ -40,7 +41,7 @@ export class ExecutionGraph {
     this.variables = new Proxy(this._variables, {
       get: (target, key: string) => target[key],
       set: (target, key: string, value) => {
-        const def = this._definitions.get(key);
+        const def = this._definitions[key];
         if (!def) throw new Error(`Variable '${key}' not defined`);
         if (typeof value !== def.type) {
           throw new TypeError(`Expected '${key}' to be type ${def.type}`);
@@ -156,10 +157,12 @@ export class ExecutionGraph {
 
     if (
       this.edges.find((e) => {
-        e.fromNode === edge.fromNode &&
+        return (
+          e.fromNode === edge.fromNode &&
           e.fromPort === edge.fromPort &&
           e.toNode === edge.toNode &&
-          e.toPort === edge.toPort;
+          e.toPort === edge.toPort
+        );
       })
     ) {
       return;
@@ -167,7 +170,7 @@ export class ExecutionGraph {
 
     if (
       this.edges.find((e) => {
-        e.toNode === edge.toNode && e.toPort === edge.toPort;
+        return e.toNode === edge.toNode && e.toPort === edge.toPort;
       })
     ) {
       throw new Error(
@@ -207,7 +210,7 @@ export class ExecutionGraph {
     type: VariableType,
     initial?: VariableValue
   ) {
-    if (this._definitions.has(name)) {
+    if (name in this._definitions) {
       throw new Error(`Variable '${name}' already exists`);
     }
     const defaultValue: VariableValue =
@@ -220,17 +223,51 @@ export class ExecutionGraph {
         ? false
         : "");
 
-    this._definitions.set(name, { type, value: defaultValue });
+    const id = nanoid(8);
+    this._definitions[id] = { id, name, type, value: defaultValue };
     this._variables[name] = defaultValue;
+    return id;
+  }
+
+  public updateVariable(
+    id: string,
+    variable: Partial<Omit<VariableDef, "id">>
+  ) {
+    const newName = variable.name;
+    if (newName) {
+      const exists = Object.values(this._definitions).some(
+        (d) => d.id !== id && d.name === newName
+      );
+      if (exists) return;
+    }
+    if (!(id in this._definitions)) return;
+
+    this._definitions[id] = {
+      ...this._definitions[id],
+      ...variable,
+    };
+  }
+
+  public getVariable<T extends VariableValue>(name: string): T | undefined {
+    const found = this._definitions[name];
+    if (found) return found.value as T;
+  }
+
+  public hasVariableId(id: string) {
+    return id in this._definitions;
   }
 
   public removeVariable(name: string) {
-    this._definitions.delete(name);
+    delete this._definitions[name];
     delete this._variables[name];
   }
 
   public setVariable(name: keyof typeof this._variables, value: VariableValue) {
     this.variables[name] = value;
+  }
+
+  public getVariables() {
+    return this._definitions;
   }
 
   // Specifically processes a prompt, so it is designed around that

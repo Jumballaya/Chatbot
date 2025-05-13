@@ -3,6 +3,8 @@ import { VariableEntry } from "../tweakpane/types";
 import { FolderApi, Pane } from "tweakpane";
 import { BindingApi } from "@tweakpane/core";
 import VariableEntryBundle from "../tweakpane/VariableEntryBundle";
+import { useGraphStore } from "../state/graphStore";
+import { nanoid } from "nanoid";
 
 type UseVariableFolderConfig = {
   title: string;
@@ -12,7 +14,7 @@ type UseVariableFolderConfig = {
 };
 
 export default function useVariableFolder(
-  ref: React.RefObject<HTMLDivElement>,
+  ref: React.RefObject<HTMLDivElement | null>,
   config: UseVariableFolderConfig
 ) {
   const paneRef = useRef<Pane | null>(null);
@@ -51,13 +53,12 @@ export default function useVariableFolder(
 
     const addBtn = pane.addButton({ title: "Add Variable" });
     addBtn.on("click", () => {
-      const key = crypto.randomUUID().slice(0, 6);
-      config.variables[key] = {
-        type: "string",
-        value: "",
-        name: key,
-      };
-      const binding = folder.addBinding(config.variables, key, {
+      const graph = useGraphStore
+        .getState()
+        .getGraph(useGraphStore.getState().activeGraphId ?? "default");
+
+      const key = graph!.addVariable(nanoid(6), "string", "");
+      const binding = folder.addBinding(graph!.getVariables(), key, {
         view: "variable-entry",
         inject: {
           onUpdate: (v: VariableEntry) => {

@@ -7,44 +7,52 @@ import {
   OnCompleteCB,
   InputPort,
   OutputPort,
+  VariableType,
+  VariableValue,
 } from "../types";
 
-export class OutputNode extends GraphNode<"output"> {
+export class VariableNode extends GraphNode<"variable"> {
+  private _varName: string = "";
+  private _varType: VariableType = "string";
+
   constructor(
     name: string,
     retryConfig: RetryConfig = { policy: "never" },
     onComplete?: OnCompleteCB
   ) {
-    super(name, "output", retryConfig, onComplete);
+    super(name, "variable", retryConfig, onComplete);
+  }
+
+  public set variable(v: { name: string; type: VariableType }) {
+    this._varName = v.name;
+    this._varType = v.type;
   }
 
   public inputs(): Record<string, InputPort> {
-    return {
-      text: { type: "string", required: true },
-    };
+    return {};
   }
 
   public outputs(): Record<string, OutputPort> {
     return {
-      text: { type: "string" },
+      value: { type: this._varType },
     };
   }
 
   public async *execute(
     context: NodeContext
-  ): AsyncIterable<ExecutionUpdate<{ text: string }>> {
-    const text = context.getInput<string>("text");
-    context.setOutput("text", text);
+  ): AsyncIterable<ExecutionUpdate<{ value: VariableValue }>> {
+    const val = context.graph.global[this._varName];
+    context.setOutput("value", val);
     yield {
       status: NodeStatus.Completed,
-      output: { text },
+      output: { value: val },
       final: true,
       nodeId: this.id,
     };
   }
 
   public onComplete(
-    result: { text: string },
+    result: { value: VariableValue },
     context: NodeContext
   ): void | Promise<void> {
     this.onCompleteCB?.(result, context);

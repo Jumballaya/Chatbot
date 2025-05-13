@@ -22,14 +22,14 @@ const VariableEntryBundle = {
 
     .tp-variable-entry input {
       flex: 1;
-      width: 33%;
+      width: 40%;
       border-bottom: 1px solid #999;
       padding: 4px;
     }
 
     .tp-variable-entry select {
       width: 100px;
-      width: 33%;
+      width: 20%;
     }
 
     .tp-variable-entry button {

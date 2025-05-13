@@ -10,7 +10,8 @@ export type GraphNodeType =
   | "if"
   | "tool-call"
   | "tool"
-  | "string";
+  | "string"
+  | "variable";
 export type ComparisonOp =
   | "eq" // number compare
   | "neq"
@@ -25,6 +26,8 @@ export type VariableType = "string" | "number" | "boolean";
 export type VariableValue = string | number | boolean;
 
 export interface VariableDef {
+  id: string;
+  name: string;
   type: VariableType;
   value: VariableValue;
 }
@@ -142,7 +145,7 @@ export type ToolCallNodeConfig = BaseNodeConfig & {
 export type ToolNodeConfig = BaseNodeConfig & {
   type: "tool";
   name: string;
-  impl: (...params: any) => Promise<Record<string, any>>;
+  impl: (...params: unknown[]) => Promise<Data>;
 };
 
 export type StringNodeConfig = BaseNodeConfig & { type: "string" };
@@ -177,12 +180,12 @@ export interface ToolCallInputs {
 
 export interface ToolCallOutputs {
   selectedTool?: string;
-  toolArgs?: Record<string, any>;
+  toolArgs?: Data;
 }
 
 // ToolNode receives args and produces a result
 export interface ToolNodeInputs {
-  args: Record<string, any>;
+  args: Data;
 }
 
 export interface ToolNodeOutputs {
@@ -190,4 +193,4 @@ export interface ToolNodeOutputs {
 }
 
 // Ollama
-export type LLMFormat = any;
+export type LLMFormat = unknown;
