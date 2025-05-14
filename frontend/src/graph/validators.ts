@@ -95,7 +95,8 @@ export function validateAcyclicGraph(graph: ExecutionGraph): void {
 export function validateConnection(
   conn: Edge | Connection,
   nodes: Node[],
-  edges: Edge[]
+  edges: Edge[],
+  connected = false
 ): string | null {
   const sourceNode = nodes.find((n) => n.id === conn.source);
   const targetNode = nodes.find((n) => n.id === conn.target);
@@ -120,11 +121,13 @@ export function validateConnection(
     return `Type mismatch: cannot connect ${sourceType} to ${targetType}`;
   }
 
-  const alreadyConnected = edges.some(
-    (e) => e.target === conn.target && e.targetHandle === conn.targetHandle
-  );
-  if (alreadyConnected) {
-    return `Input port '${conn.targetHandle}' is already connected`;
+  if (!connected) {
+    const alreadyConnected = edges.some(
+      (e) => e.target === conn.target && e.targetHandle === conn.targetHandle
+    );
+    if (alreadyConnected) {
+      return `Input port '${conn.targetHandle}' is already connected`;
+    }
   }
 
   return null;

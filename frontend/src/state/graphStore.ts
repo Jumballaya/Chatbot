@@ -24,10 +24,12 @@ export interface GraphState {
   onEdgesDelete: (edges: Edge[]) => void;
   handleConnect: (connection: Connection) => void;
   addEdge: (conn: Connection) => void;
+  setEdges: (edges: Edge[]) => void;
   isValidConnection: (connection: Edge | Connection) => boolean;
 
-  updateNode: (id: string, partial: Data) => void;
+  updateNode: (id: string, partial: Data, removedEdges?: boolean) => void;
   createNode: (type: GraphNodeType) => void;
+  removeInvalidEdges: (id: string) => void;
   propagateValueToDownstream: (
     sourceId: string,
     sourcePort: string,
@@ -231,12 +233,16 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     }
   },
 
-  updateNode(id, partial) {
+  updateNode(id, partial, removeEdges = true) {
     set({
       nodes: get().nodes.map((node) =>
         node.id === id ? { ...node, data: { ...node.data, ...partial } } : node
       ),
     });
+
+    if (removeEdges) {
+      get().removeInvalidEdges(id);
+    }
   },
 
   addEdge(data) {
@@ -262,6 +268,10 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const id = nanoid(6);
     const edge = { id, ...data };
     set({ edges: [edge, ...state.edges] });
+  },
+
+  setEdges(edges) {
+    set({ edges });
   },
 
   onEdgesDelete(deleted) {
@@ -316,6 +326,75 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
       state.updateNode(target.id, { targets: newTargets });
       state.propagateValueToDownstream(target.id, targetPort, value);
     }
+  },
+
+  removeInvalidEdges(id) {
+    const { nodes, edges, setEdges, updateNode } = useGraphStore.getState();
+
+    const node = nodes.find((n) => n.id === id);
+    if (!node) return;
+
+    const nextEdges: Edge[] = [];
+    const removedEdges: Edge[] = [];
+
+    for (const edge of edges) {
+      if (edge.source === id || edge.target === id) {
+        const error = validateConnection(edge, nodes, edges, true);
+        if (error) {
+          console.warn(`Edge ${edge.id} removed: ${error}`);
+          removedEdges.push(edge);
+          continue;
+        }
+      }
+      nextEdges.push(edge);
+    }
+
+    for (const edge of removedEdges) {
+      const sourceNode = nodes.find((n) => n.id === edge.source);
+      const targetNode = nodes.find((n) => n.id === edge.target);
+      const sourcePort = sourceNode?.data?.sources[edge.sourceHandle ?? ""];
+      const targetPort = targetNode?.data?.targets[edge.targetHandle ?? ""];
+      console.log(sourcePort, targetPort);
+      if (sourceNode && sourcePort && edge.sourceHandle) {
+        sourcePort.connected = false;
+        updateNode(
+          sourceNode.id,
+          {
+            sources: {
+              ...(sourceNode.data.sources as object),
+              [edge.sourceHandle]: {
+                ...sourcePort,
+                connected: false,
+              },
+            },
+          },
+          false
+        );
+      }
+      if (targetNode && targetPort && edge.targetHandle) {
+        updateNode(
+          targetNode.id,
+          {
+            targets: {
+              ...(targetNode.data.targets as object),
+              [edge.targetHandle]: {
+                ...targetPort,
+                connected: false,
+                value:
+                  targetPort.type === "string"
+                    ? ""
+                    : targetPort.type === "number"
+                    ? 0
+                    : false,
+              },
+            },
+          },
+          false
+        );
+      }
+    }
+
+    setEdges(nextEdges);
   },
 
   compileGraph(id) {
