@@ -3,34 +3,29 @@ import BaseNodeComponent from "./BaseNodeComponent";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import ControlledInput from "../inputs/ControlledInput";
-import { Port, VariableValue } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
 import { shallow } from "zustand/shallow";
 import usePropagateInputToOutput from "../../../hooks/usePropagateInputToOutput";
-
-export type PromptNodeProps = {
-  id: string;
-  data: {
-    targets: { input: Port<"string"> };
-    sources: { prompt: Port<"string"> };
-  };
-};
+import { PromptNodeProps } from "../types";
+import { VariableValue } from "../../../graph/types";
 
 const selector = (id: string) => (store: GraphState) => ({
   setPrompt: (prompt: VariableValue) =>
-    store.setNodeValue(id, "prompt", "sources", prompt),
-  promptValue: store.getNodeValue(id, "prompt", "sources")?.value ?? "",
-  inputValue: store.getNodeValue(id, "input", "targets")?.value ?? "",
+    store.setNodeValue(id, "prompt", "sources", { value: prompt }),
+  promptValue:
+    store.getNodeValue<"string">(id, "prompt", "sources")?.value ?? "",
+
+  setInput: (input: string) =>
+    store.setNodeValue<"string">(id, "input", "targets", { value: input }),
+  inputValue: store.getNodeValue<"string">(id, "input", "targets")?.value ?? "",
   inputConnected:
     store.getNodeValue(id, "input", "targets")?.connected ?? false,
 });
 
 export default function PromptNodeComponent(props: PromptNodeProps) {
-  const { setPrompt, promptValue, inputValue, inputConnected } = useGraphStore(
-    selector(props.id),
-    shallow
-  );
-  usePropagateInputToOutput(inputConnected, inputValue, promptValue, setPrompt);
+  const { setPrompt, promptValue, inputValue, inputConnected, setInput } =
+    useGraphStore(selector(props.id), shallow);
+  usePropagateInputToOutput(inputValue, promptValue, setPrompt);
 
   return (
     <BaseNodeComponent title="Prompt">
@@ -47,7 +42,7 @@ export default function PromptNodeComponent(props: PromptNodeProps) {
           <StringInput
             label="prompt"
             value={inputValue as string}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
           />
         )}
 

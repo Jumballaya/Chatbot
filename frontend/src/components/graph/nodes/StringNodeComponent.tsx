@@ -2,19 +2,12 @@ import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
-import { Port } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
-
-export type StringNodeProps = {
-  id: string;
-  data: {
-    source: { string: Port<"string"> };
-  };
-};
+import { StringNodeProps } from "../types";
 
 const selector = (id: string) => (store: GraphState) => ({
   setString: (string: string) =>
-    store.setNodeValue(id, "string", "sources", string),
+    store.setNodeValue(id, "string", "sources", { value: string }),
   value: store.getNodeValue(id, "string", "sources")?.value ?? "",
 });
 

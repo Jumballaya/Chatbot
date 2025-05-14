@@ -1,6 +1,7 @@
 import { NodeContext } from "./NodeContext";
 
 export type NodeId = string;
+export type PortDirection = "targets" | "sources";
 export type ConditionalValue = "true" | "false" | string;
 export type RetryPolicyValue = "never" | "on_failure" | "always";
 export type GraphNodeType =

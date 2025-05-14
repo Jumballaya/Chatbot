@@ -14,18 +14,22 @@ import type {
   VariableDef,
   GraphNodeType,
   Data,
-  VariableValue,
-  VariableType,
+  PortDirection,
+  IOTypeMap,
+  IOType,
+  Port,
 } from "../graph/types";
 import { validateConnection } from "../graph/validators";
+import type { GraphData } from "../components/graph/types";
+import { createInitialNode } from "../graph/reactNodeFactory";
 
 export interface GraphState {
-  nodes: Node[];
+  nodes: Node<GraphData>[];
   edges: Edge[];
   activeGraphId: string | null;
   graphs: Record<string, { compiled: boolean; graph: ExecutionGraph }>;
 
-  onNodesChange: OnNodesChange;
+  onNodesChange: OnNodesChange<Node<GraphData>>;
   onEdgesChange: OnEdgesChange;
   onEdgesDelete: (edges: Edge[]) => void;
   handleConnect: (connection: Connection) => void;
@@ -33,26 +37,29 @@ export interface GraphState {
   setEdges: (edges: Edge[]) => void;
   isValidConnection: (connection: Edge | Connection) => boolean;
 
-  updateNode: (id: string, partial: Data, removedEdges?: boolean) => void;
-  createNode: (type: GraphNodeType) => void;
-  setNodeValue: (
+  updateNode: (
     id: string,
-    port: string,
-    direction: "targets" | "sources",
-    value: VariableValue
+    partial: Partial<GraphData>,
+    removeEdges?: boolean
   ) => void;
-  getNodeValue(
+  createNode: (type: GraphNodeType) => void;
+  setNodeValue: <T extends IOType>(
     id: string,
     port: string,
-    direction: "sources" | "targets"
-  ):
-    | { type: VariableType; connected: boolean; value: VariableValue }
-    | undefined;
+    direction: PortDirection,
+    value: Partial<Port<T>>,
+    removeEdges?: boolean
+  ) => void;
+  getNodeValue<T extends IOType>(
+    id: string,
+    port: string,
+    direction: PortDirection
+  ): { type: T; connected: boolean; value: IOTypeMap[T] } | undefined;
   removeInvalidEdges: (id: string) => void;
-  propagateValueToDownstream: (
+  propagateValueToDownstream: <T extends IOType>(
     sourceId: string,
     sourcePort: string,
-    value: unknown
+    value: Partial<Port<T>>
   ) => void;
 
   setActiveGraph: (id: string | null) => void;
@@ -110,165 +117,8 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
 
   createNode(type: GraphNodeType) {
     const id = nanoid(8);
-    switch (type) {
-      case "output": {
-        const node = {
-          type: "out",
-          id,
-          data: {
-            targets: {
-              input: {
-                connected: false,
-                type: "string",
-                value: "",
-              },
-            },
-          },
-          position: { x: 100, y: 100 },
-        };
-        set({ nodes: [...get().nodes, node] });
-        break;
-      }
-      case "prompt": {
-        const node = {
-          type,
-          id,
-          data: {
-            targets: {
-              input: {
-                type: "string",
-                value: "",
-                connected: false,
-              },
-            },
-            sources: {
-              prompt: {
-                type: "string",
-                value: "",
-                connected: false,
-              },
-            },
-          },
-          position: { x: 100, y: 100 },
-        };
-        set({ nodes: [...get().nodes, node] });
-        break;
-      }
-      case "llm": {
-        const node = {
-          type,
-          id,
-          data: {
-            targets: {
-              prompt: {
-                connected: false,
-                type: "string",
-                value: "",
-              },
-              model: {
-                connected: false,
-                type: "string",
-                value: "",
-              },
-              system: {
-                connected: false,
-                type: "string",
-                value: "",
-              },
-              stream: {
-                connected: false,
-                type: "boolean",
-                value: false,
-              },
-            },
-
-            sources: {
-              llm_output: {
-                connected: false,
-                type: "string",
-                value: "",
-              },
-            },
-          },
-          position: { x: 100, y: 100 },
-        };
-        set({ nodes: [...get().nodes, node] });
-        break;
-      }
-      case "variable": {
-        const node = {
-          type,
-          id,
-          data: {
-            sources: {
-              output: {
-                connected: false,
-                type: "string",
-                value: "",
-              },
-            },
-          },
-          position: { x: 100, y: 100 },
-        };
-        set({ nodes: [...get().nodes, node] });
-        break;
-      }
-      case "number": {
-        const node = {
-          type,
-          id,
-          data: {
-            sources: {
-              number: {
-                connected: false,
-                type: "number",
-                value: 0,
-              },
-            },
-          },
-          position: { x: 100, y: 100 },
-        };
-        set({ nodes: [...get().nodes, node] });
-        break;
-      }
-      case "string": {
-        const node = {
-          type,
-          id,
-          data: {
-            sources: {
-              string: {
-                connected: false,
-                type: "string",
-                value: "",
-              },
-            },
-          },
-          position: { x: 100, y: 100 },
-        };
-        set({ nodes: [...get().nodes, node] });
-        break;
-      }
-      case "boolean": {
-        const node = {
-          type,
-          id,
-          data: {
-            sources: {
-              boolean: {
-                connected: false,
-                type: "boolean",
-                value: false,
-              },
-            },
-          },
-          position: { x: 100, y: 100 },
-        };
-        console.log(node);
-        set({ nodes: [...get().nodes, node] });
-        break;
-      }
-    }
+    const node = createInitialNode(type, id, { x: 100, y: 100 });
+    set({ nodes: [...get().nodes, node] });
   },
 
   updateNode(id, partial, removeEdges = true) {
@@ -283,21 +133,25 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     }
   },
 
-  setNodeValue(id, port, direction, value) {
+  setNodeValue(id, port, direction, value, removeEdges = true) {
     const node = get().nodes.find((n) => n.id === id);
     if (!node) return;
     const data = node.data as Data;
     if (!data[direction]) return;
 
-    get().updateNode(id, {
-      [direction]: {
-        ...data[direction],
-        [port]: {
-          ...data[direction][port],
-          value,
+    get().updateNode(
+      id,
+      {
+        [direction]: {
+          ...data[direction],
+          [port]: {
+            ...data[direction][port],
+            ...value,
+          },
         },
       },
-    });
+      removeEdges
+    );
     get().propagateValueToDownstream(id, port, value);
   },
 
@@ -320,18 +174,11 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const target = state.nodes.find((n) => n.id === data.target);
 
     if (source && target && data.sourceHandle && data.targetHandle) {
-      const value = (source.data.sources as Data)[data.sourceHandle].value;
-      state.updateNode(target.id, {
-        targets: {
-          ...(target.data.targets as Data),
-          [data.targetHandle]: {
-            ...(target.data.targets as Data)[data.targetHandle],
-            connected: true,
-            value,
-          },
-        },
+      const value = source.data.sources?.[data.sourceHandle].value;
+      state.setNodeValue(target.id, data.targetHandle, "targets", {
+        connected: true,
+        value,
       });
-      state.propagateValueToDownstream(target.id, data.targetHandle, value);
     }
 
     const id = nanoid(6);
@@ -349,17 +196,10 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
       const { targetHandle } = edge;
       const target = state.nodes.find((n) => n.id === edge.target);
       if (target && targetHandle) {
-        state.updateNode(target.id, {
-          targets: {
-            ...(target.data.targets as Data),
-            [targetHandle]: {
-              ...(target.data.targets as Data)[targetHandle],
-              connected: false,
-              value: "",
-            },
-          },
+        state.setNodeValue(target.id, targetHandle, "targets", {
+          connected: false,
+          value: "",
         });
-        state.propagateValueToDownstream(target.id, targetHandle, "");
       }
     }
 
@@ -371,7 +211,7 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
   propagateValueToDownstream(
     sourceId: string,
     sourcePort: string,
-    value: unknown
+    value: Partial<Port<IOType>>
   ) {
     const state = get();
     const edges = state.edges.filter(
@@ -383,22 +223,14 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
       if (!target || !edge.targetHandle) continue;
 
       const targetPort = edge.targetHandle;
-      const newTargets = {
-        ...(target.data.targets as Data),
-        [targetPort]: {
-          ...(target.data.targets as Data)[targetPort],
-          value,
-          connected: true,
-        },
-      };
-
-      state.updateNode(target.id, { targets: newTargets });
-      state.propagateValueToDownstream(target.id, targetPort, value);
+      state.setNodeValue(target.id, targetPort, "targets", {
+        ...value,
+      });
     }
   },
 
   removeInvalidEdges(id) {
-    const { nodes, edges, setEdges, updateNode } = useGraphStore.getState();
+    const { nodes, edges, setEdges, setNodeValue } = useGraphStore.getState();
 
     const node = nodes.find((n) => n.id === id);
     if (!node) return;
@@ -428,38 +260,29 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
         edge.targetHandle ?? ""
       ];
       if (sourceNode && sourcePort && edge.sourceHandle) {
-        sourcePort.connected = false;
-        updateNode(
+        setNodeValue(
           sourceNode.id,
+          edge.sourceHandle,
+          "sources",
           {
-            sources: {
-              ...(sourceNode.data.sources as object),
-              [edge.sourceHandle]: {
-                ...sourcePort,
-                connected: false,
-              },
-            },
+            connected: false,
           },
           false
         );
       }
       if (targetNode && targetPort && edge.targetHandle) {
-        updateNode(
+        setNodeValue(
           targetNode.id,
+          edge.targetHandle,
+          "targets",
           {
-            targets: {
-              ...(targetNode.data.targets as object),
-              [edge.targetHandle]: {
-                ...targetPort,
-                connected: false,
-                value:
-                  targetPort.type === "string"
-                    ? ""
-                    : targetPort.type === "number"
-                    ? 0
-                    : false,
-              },
-            },
+            connected: false,
+            value:
+              targetPort.type === "string"
+                ? ""
+                : targetPort.type === "number"
+                ? 0
+                : false,
           },
           false
         );

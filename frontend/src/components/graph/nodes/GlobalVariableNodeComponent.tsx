@@ -5,20 +5,14 @@ import { useState } from "react";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
-import type { Port, VariableValue } from "../../../graph/types";
+import type { VariableValue } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
 import useGlobalVariable from "../../../hooks/useGlobalVariable";
-
-export type VariableNodeProps = {
-  id: string;
-  data: {
-    sources: { output: Port<"any"> };
-  };
-};
+import { VariableNodeProps } from "../types";
 
 const selector = (id: string) => (store: GraphState) => ({
   setOutput: (output: VariableValue) =>
-    store.setNodeValue(id, "output", "sources", output),
+    store.setNodeValue(id, "output", "sources", { value: output }),
   outputValue: store.getNodeValue(id, "output", "sources")?.value ?? "",
   getVariableList: store.getVariableList,
   getActiveGraph: store.getActiveGraph,

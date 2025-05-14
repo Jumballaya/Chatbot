@@ -1,14 +1,6 @@
 import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
-import { Port } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
-
-export type OutputNodeProps = {
-  id: string;
-  data: {
-    targets: { input: Port<"string"> };
-  };
-};
 
 export default function OutputNodeComponent() {
   return (

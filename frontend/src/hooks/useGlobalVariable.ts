@@ -14,8 +14,6 @@ export default function useGlobalVariable(
     if (varDef) {
       setVarVal(varDef.value);
       setVarType(varDef.type);
-    } else {
-      graph.addVariable(variableName, "string", "");
     }
   }, [variableName, graph]);
 

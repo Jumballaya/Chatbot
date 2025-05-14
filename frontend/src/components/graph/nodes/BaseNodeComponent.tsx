@@ -1,9 +1,4 @@
-import type { ReactNode } from "react";
-
-type BaseNodeComponentProps = {
-  title: string;
-  children: ReactNode;
-};
+import { BaseNodeComponentProps } from "../types";
 
 export default function BaseNodeComponent({
   title,

@@ -5,8 +5,8 @@ import DropdownInput from "../inputs/DropdownInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
-import { Port } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
+import { LLMNodeProps } from "../types";
 
 //
 //
@@ -15,28 +15,15 @@ import TypedHandle from "../TypedHandle";
 //
 //
 
-export type LLMNodeProps = {
-  id: string;
-  data: {
-    sources: { llm_output: Port<"string"> };
-    targets: {
-      prompt: Port<"string">;
-      model: Port<"string">;
-      system: Port<"string">;
-      stream: Port<"boolean">;
-    };
-  };
-};
-
 const selector = (id: string) => (store: GraphState) => ({
   setPrompt: (prompt: string) =>
-    store.setNodeValue(id, "prompt", "targets", prompt),
+    store.setNodeValue(id, "prompt", "targets", { value: prompt }),
   setModel: (model: string) =>
-    store.setNodeValue(id, "model", "targets", model),
+    store.setNodeValue(id, "model", "targets", { value: model }),
   setSystem: (system: string) =>
-    store.setNodeValue(id, "system", "targets", system),
+    store.setNodeValue(id, "system", "targets", { value: system }),
   setStream: (stream: boolean) =>
-    store.setNodeValue(id, "stream", "targets", stream),
+    store.setNodeValue(id, "stream", "targets", { value: stream }),
 
   promptValue: store.getNodeValue(id, "prompt", "targets")?.value ?? "",
   promptConnected:
