@@ -1,12 +1,11 @@
 import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
-import { useEffect, useState } from "react";
 import StringInput from "../inputs/StringInput";
 import DropdownInput from "../inputs/DropdownInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
-import { Data, Port } from "../../../graph/types";
+import { Port } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
 
 export type LLMNodeProps = {
@@ -23,104 +22,47 @@ export type LLMNodeProps = {
 };
 
 const selector = (id: string) => (store: GraphState) => ({
-  setPrompt: (prompt: string) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      ...node.data,
-      targets: {
-        ...(node.data.targets as object),
-        prompt: {
-          ...(node.data.targets as Data).prompt,
-          value: prompt,
-        },
-      },
-    });
-  },
+  setPrompt: (prompt: string) =>
+    store.setNodeValue(id, "prompt", "targets", prompt),
+  setModel: (model: string) =>
+    store.setNodeValue(id, "model", "targets", model),
+  setSystem: (system: string) =>
+    store.setNodeValue(id, "system", "targets", system),
+  setStream: (stream: boolean) =>
+    store.setNodeValue(id, "stream", "targets", stream),
 
-  setModel: (model: string) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      ...node.data,
-      targets: {
-        ...(node.data.targets as object),
-        model: {
-          ...(node.data.targets as Data).model,
-          value: model,
-        },
-      },
-    });
-  },
+  promptValue: store.getNodeValue(id, "prompt", "targets")?.value ?? "",
+  promptConnected:
+    store.getNodeValue(id, "prompt", "targets")?.connected ?? false,
 
-  setStream: (stream: boolean) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      ...node.data,
-      targets: {
-        ...(node.data.targets as object),
-        stream: {
-          ...(node.data.targets as Data).stream,
-          value: stream,
-        },
-      },
-    });
-  },
+  modelValue: store.getNodeValue(id, "model", "targets")?.value ?? "",
+  modelConnected:
+    store.getNodeValue(id, "model", "targets")?.connected ?? false,
 
-  setSystem: (system: string) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      ...node.data,
-      targets: {
-        ...(node.data.targets as object),
-        system: {
-          ...(node.data.targets as Data).system,
-          value: system,
-        },
-      },
-    });
-  },
+  systemValue: store.getNodeValue(id, "system", "targets")?.value ?? "",
+  systemConnected:
+    store.getNodeValue(id, "system", "targets")?.connected ?? false,
 
-  setOutput: (llm_output: string) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      ...node.data,
-      sources: {
-        ...(node.data.sources as object),
-        llm_output: {
-          ...(node.data.sources as Data).llm_output,
-          value: llm_output,
-        },
-      },
-    });
-    store.propagateValueToDownstream(id, "llm_output", llm_output);
-  },
+  streamValue: store.getNodeValue(id, "stream", "targets")?.value ?? false,
+  streamConnected:
+    store.getNodeValue(id, "stream", "targets")?.connected ?? false,
 });
 
 export default function LLMNodeComponent(props: LLMNodeProps) {
-  const [promptVal, setPromptVal] = useState(props.data.targets.prompt.value);
-  const [modelVal, setModelVal] = useState(props.data.targets.model.value);
-
-  const node = useGraphStore(selector(props.id), shallow);
-
-  const prompt = props.data.targets.prompt.value;
-  const promptConnected = props.data.targets.prompt.connected;
-  const model = props.data.targets.model.value;
-  const modelConnected = props.data.targets.model.connected;
-
-  useEffect(() => {
-    setPromptVal(prompt);
-    setModelVal(model);
-    if (promptConnected) {
-      node.setPrompt(prompt);
-    }
-    if (modelConnected) {
-      node.setModel(model);
-    }
-  }, [prompt, promptConnected, model, modelConnected]);
+  const {
+    setPrompt,
+    setModel,
+    setSystem,
+    setStream,
+    promptValue,
+    promptConnected,
+    modelValue,
+    modelConnected,
+    systemValue,
+    systemConnected,
+    streamValue,
+    streamConnected,
+  } = useGraphStore(selector(props.id), shallow);
 
   return (
     <BaseNodeComponent title="LLM">
@@ -144,8 +86,8 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
         />
         <DropdownInput
           label="model"
-          value={modelVal}
-          onChange={(e) => setModelVal(e.target.value)}
+          value={modelValue as string}
+          onChange={(e) => setModel(e.target.value)}
           options={[{ key: "gemma3:4b", value: "gemma3:4b" }]}
           disabled={modelConnected}
         />
@@ -158,12 +100,48 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
           dataType="string"
         />
         {promptConnected ? (
-          <ControlledInput name="prompt" value={prompt} />
+          <ControlledInput name="prompt" value={promptValue} />
         ) : (
           <StringInput
             label="prompt"
-            value={promptVal}
-            onChange={(e) => setPromptVal(e.target.value)}
+            value={promptValue as string}
+            onChange={(e) => setPrompt(e.target.value)}
+          />
+        )}
+      </div>
+      <div className="relative px-1 py-0.5 space-y-0.5">
+        <TypedHandle
+          id="system"
+          type="target"
+          position={Position.Left}
+          dataType="string"
+        />
+        {systemConnected ? (
+          <ControlledInput name="system" value={systemValue} />
+        ) : (
+          <StringInput
+            label="system"
+            value={systemValue as string}
+            onChange={(e) => setSystem(e.target.value)}
+          />
+        )}
+      </div>
+      <div className="relative px-1 py-0.5 space-y-0.5">
+        <TypedHandle
+          id="stream"
+          type="target"
+          position={Position.Left}
+          dataType="boolean"
+        />
+        {streamConnected ? (
+          <ControlledInput name="stream?" value={streamValue.toString()} />
+        ) : (
+          <StringInput
+            label="stream?"
+            value={(streamValue as boolean).toString()}
+            onChange={(e) =>
+              setStream(e.target.value === "true" ? true : false)
+            }
           />
         )}
       </div>

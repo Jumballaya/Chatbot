@@ -1,11 +1,12 @@
 import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
-import { useEffect, useState } from "react";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import ControlledInput from "../inputs/ControlledInput";
-import { Data, Port } from "../../../graph/types";
+import { Port, VariableValue } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
+import { shallow } from "zustand/shallow";
+import usePropagateInputToOutput from "../../../hooks/usePropagateInputToOutput";
 
 export type PromptNodeProps = {
   id: string;
@@ -16,50 +17,20 @@ export type PromptNodeProps = {
 };
 
 const selector = (id: string) => (store: GraphState) => ({
-  setInput: (input: string) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      ...node.data,
-      targets: {
-        ...(node.data.targets as object),
-        input: {
-          ...(node.data.targets as Data).input,
-          value: input,
-        },
-      },
-    });
-  },
-
-  setPrompt: (prompt: string) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      ...node.data,
-      sources: {
-        ...(node.data.sources as object),
-        prompt: {
-          ...(node.data.sources as Data).prompt,
-          value: prompt,
-        },
-      },
-    });
-    store.propagateValueToDownstream(id, "prompt", prompt);
-  },
+  setPrompt: (prompt: VariableValue) =>
+    store.setNodeValue(id, "prompt", "sources", prompt),
+  promptValue: store.getNodeValue(id, "prompt", "sources")?.value ?? "",
+  inputValue: store.getNodeValue(id, "input", "targets")?.value ?? "",
+  inputConnected:
+    store.getNodeValue(id, "input", "targets")?.connected ?? false,
 });
 
 export default function PromptNodeComponent(props: PromptNodeProps) {
-  const [val, setVal] = useState(props.data.targets.input.value ?? "");
-  const node = useGraphStore(selector(props.id));
-
-  const prompt = props.data.targets.input.value;
-  const promptConnected = props.data.targets.input.connected;
-  useEffect(() => {
-    setVal(prompt);
-    if (promptConnected) {
-      node.setPrompt(prompt);
-    }
-  }, [prompt, promptConnected]);
+  const { setPrompt, promptValue, inputValue, inputConnected } = useGraphStore(
+    selector(props.id),
+    shallow
+  );
+  usePropagateInputToOutput(inputConnected, inputValue, promptValue, setPrompt);
 
   return (
     <BaseNodeComponent title="Prompt">
@@ -70,16 +41,13 @@ export default function PromptNodeComponent(props: PromptNodeProps) {
           position={Position.Left}
           dataType="string"
         />
-        {promptConnected ? (
-          <ControlledInput name="prompt" value={prompt} />
+        {inputConnected ? (
+          <ControlledInput name="prompt" value={promptValue} />
         ) : (
           <StringInput
             label="prompt"
-            value={val}
-            onChange={(e) => {
-              setVal(e.target.value);
-              node.setPrompt(e.target.value);
-            }}
+            value={inputValue as string}
+            onChange={(e) => setPrompt(e.target.value)}
           />
         )}
 

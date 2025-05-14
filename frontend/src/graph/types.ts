@@ -12,6 +12,7 @@ export type GraphNodeType =
   | "tool"
   | "string"
   | "number"
+  | "boolean"
   | "variable";
 export type ComparisonOp =
   | "eq" // number compare

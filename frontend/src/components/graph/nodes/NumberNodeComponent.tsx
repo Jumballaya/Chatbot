@@ -1,7 +1,7 @@
 import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import NumberInput from "../inputs/NumberInput";
-import { Data, Port } from "../../../graph/types";
+import { Port } from "../../../graph/types";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import TypedHandle from "../TypedHandle";
 
@@ -13,23 +13,9 @@ export type NumberNodeProps = {
 };
 
 const selector = (id: string) => (store: GraphState) => ({
-  setNumber: (number: number) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      ...node.data,
-      sources: {
-        ...(node.data.sources as object),
-        number: {
-          ...(node.data.sources as Data).number,
-          value: number,
-        },
-      },
-    });
-    store.propagateValueToDownstream(id, "number", number);
-  },
-  number:
-    (store.nodes.find((v) => v.id === id)?.data.sources as Data)?.number ?? 0,
+  setNumber: (number: number) =>
+    store.setNodeValue(id, "number", "sources", number),
+  number: store.getNodeValue(id, "number", "sources"),
 });
 
 export default function NumberNodeComponent(props: NumberNodeProps) {
@@ -40,7 +26,7 @@ export default function NumberNodeComponent(props: NumberNodeProps) {
       <div className="relative px-1 py-0.5 space-y-0.5">
         <NumberInput
           label="Number"
-          value={node.number.value ?? 0}
+          value={(node.number?.value as number) ?? 0}
           onChange={(e) => {
             node.setNumber(Number(e.target.value));
           }}

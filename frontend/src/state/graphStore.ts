@@ -10,7 +10,13 @@ import {
 import { ExecutionGraph } from "../graph/ExecutionGraph";
 import { createWithEqualityFn } from "zustand/traditional";
 import { nanoid } from "nanoid";
-import type { VariableDef, GraphNodeType, Data } from "../graph/types";
+import type {
+  VariableDef,
+  GraphNodeType,
+  Data,
+  VariableValue,
+  VariableType,
+} from "../graph/types";
 import { validateConnection } from "../graph/validators";
 
 export interface GraphState {
@@ -29,6 +35,19 @@ export interface GraphState {
 
   updateNode: (id: string, partial: Data, removedEdges?: boolean) => void;
   createNode: (type: GraphNodeType) => void;
+  setNodeValue: (
+    id: string,
+    port: string,
+    direction: "targets" | "sources",
+    value: VariableValue
+  ) => void;
+  getNodeValue(
+    id: string,
+    port: string,
+    direction: "sources" | "targets"
+  ):
+    | { type: VariableType; connected: boolean; value: VariableValue }
+    | undefined;
   removeInvalidEdges: (id: string) => void;
   propagateValueToDownstream: (
     sourceId: string,
@@ -230,6 +249,25 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
         set({ nodes: [...get().nodes, node] });
         break;
       }
+      case "boolean": {
+        const node = {
+          type,
+          id,
+          data: {
+            sources: {
+              boolean: {
+                connected: false,
+                type: "boolean",
+                value: false,
+              },
+            },
+          },
+          position: { x: 100, y: 100 },
+        };
+        console.log(node);
+        set({ nodes: [...get().nodes, node] });
+        break;
+      }
     }
   },
 
@@ -243,6 +281,37 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     if (removeEdges) {
       get().removeInvalidEdges(id);
     }
+  },
+
+  setNodeValue(id, port, direction, value) {
+    const node = get().nodes.find((n) => n.id === id);
+    if (!node) return;
+    const data = node.data as Data;
+    if (!data[direction]) return;
+
+    get().updateNode(id, {
+      [direction]: {
+        ...data[direction],
+        [port]: {
+          ...data[direction][port],
+          value,
+        },
+      },
+    });
+    get().propagateValueToDownstream(id, port, value);
+  },
+
+  getNodeValue(id, port, direction) {
+    const node = get().nodes.find((n) => n.id === id);
+    if (!node) return;
+    const data = node.data as Data;
+    if (!data[direction]) return;
+    const val = data[direction][port];
+    return {
+      type: val.type,
+      value: val.value,
+      connected: val.connected,
+    };
   },
 
   addEdge(data) {
@@ -352,9 +421,12 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     for (const edge of removedEdges) {
       const sourceNode = nodes.find((n) => n.id === edge.source);
       const targetNode = nodes.find((n) => n.id === edge.target);
-      const sourcePort = sourceNode?.data?.sources[edge.sourceHandle ?? ""];
-      const targetPort = targetNode?.data?.targets[edge.targetHandle ?? ""];
-      console.log(sourcePort, targetPort);
+      const sourcePort = (sourceNode?.data?.sources as Data)[
+        edge.sourceHandle ?? ""
+      ];
+      const targetPort = (targetNode?.data?.targets as Data)[
+        edge.targetHandle ?? ""
+      ];
       if (sourceNode && sourcePort && edge.sourceHandle) {
         sourcePort.connected = false;
         updateNode(

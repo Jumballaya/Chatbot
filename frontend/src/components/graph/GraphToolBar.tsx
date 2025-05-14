@@ -50,6 +50,26 @@ export default function GraphToolBar() {
             }}
           />
         </li>
+        <li className="mr-2">
+          <Button
+            label="String"
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              createNode("string");
+            }}
+          />
+        </li>
+        <li className="mr-2">
+          <Button
+            label="Boolean"
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              createNode("boolean");
+            }}
+          />
+        </li>
         <li>
           <Button
             label="Variable"

@@ -11,6 +11,7 @@ import GlobalVariableNodeComponent from "../components/graph/nodes/GlobalVariabl
 import LLMNodeComponent from "../components/graph/nodes/LLMNodeComponent";
 import OutputNodeComponent from "../components/graph/nodes/OutputNodeComponent";
 import GraphToolBar from "../components/graph/GraphToolBar";
+import BooleanNodeComponent from "../components/graph/nodes/BooleanNodeComponent";
 
 const graphSelector = (store: GraphState) => ({
   nodes: store.nodes,
@@ -25,6 +26,7 @@ const graphSelector = (store: GraphState) => ({
 const nodeTypes = {
   string: StringNodeComponent,
   number: NumberNodeComponent,
+  boolean: BooleanNodeComponent,
   prompt: PromptNodeComponent,
   variable: GlobalVariableNodeComponent,
   llm: LLMNodeComponent,
