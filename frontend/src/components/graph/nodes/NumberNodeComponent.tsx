@@ -1,8 +1,9 @@
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import NumberInput from "../inputs/NumberInput";
 import { Data, Port } from "../../../graph/types";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
+import TypedHandle from "../TypedHandle";
 
 export type NumberNodeProps = {
   id: string;
@@ -44,11 +45,11 @@ export default function NumberNodeComponent(props: NumberNodeProps) {
             node.setNumber(Number(e.target.value));
           }}
         />
-        <Handle
+        <TypedHandle
           id="number"
           type="source"
           position={Position.Right}
-          className="w-5 h-5"
+          dataType="number"
         />
       </div>
     </BaseNodeComponent>

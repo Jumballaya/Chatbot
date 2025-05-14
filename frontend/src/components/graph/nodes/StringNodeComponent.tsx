@@ -1,8 +1,9 @@
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { Data, Port } from "../../../graph/types";
+import TypedHandle from "../TypedHandle";
 
 export type StringNodeProps = {
   id: string;
@@ -41,11 +42,11 @@ export default function StringNodeComponent(props: StringNodeProps) {
           value={node.string}
           onChange={(e) => node.setString(e.target.value)}
         />
-        <Handle
+        <TypedHandle
           id="string"
           type="source"
           position={Position.Right}
-          className="w-3 h-3 bg-red"
+          dataType="string"
         />
       </div>
     </BaseNodeComponent>

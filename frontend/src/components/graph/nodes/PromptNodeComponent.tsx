@@ -1,10 +1,11 @@
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import { useEffect, useState } from "react";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import ControlledInput from "../inputs/ControlledInput";
 import { Data, Port } from "../../../graph/types";
+import TypedHandle from "../TypedHandle";
 
 export type PromptNodeProps = {
   id: string;
@@ -63,11 +64,11 @@ export default function PromptNodeComponent(props: PromptNodeProps) {
   return (
     <BaseNodeComponent title="Prompt">
       <div className="relative px-1 py-0.5 space-y-0.5">
-        <Handle
+        <TypedHandle
           id="input"
           type="target"
           position={Position.Left}
-          className="w-3 h-3 bg-red"
+          dataType="string"
         />
         {promptConnected ? (
           <ControlledInput name="prompt" value={prompt} />
@@ -82,11 +83,11 @@ export default function PromptNodeComponent(props: PromptNodeProps) {
           />
         )}
 
-        <Handle
+        <TypedHandle
           id="prompt"
           type="source"
           position={Position.Right}
-          className="w-3 h-3 bg-red"
+          dataType="string"
         />
       </div>
     </BaseNodeComponent>

@@ -1,4 +1,4 @@
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import { useEffect, useState } from "react";
 import StringInput from "../inputs/StringInput";
@@ -7,6 +7,7 @@ import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
 import { Data, Port } from "../../../graph/types";
+import TypedHandle from "../TypedHandle";
 
 export type LLMNodeProps = {
   id: string;
@@ -124,13 +125,23 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
   return (
     <BaseNodeComponent title="LLM">
       <div className="relative px-1 py-0.5 space-y-0.5">
-        <Handle id="llm_output" type="source" position={Position.Right} />
+        <TypedHandle
+          id="llm_output"
+          type="source"
+          position={Position.Right}
+          dataType="string"
+        />
         <span className="text-sm text-zinc-600 dark:text-zinc-400 text-right w-full block pr-2 py-1">
           LLM Output
         </span>
       </div>
       <div className="relative px-1 py-0.5 space-y-0.5">
-        <Handle id="model" type="target" position={Position.Left} />
+        <TypedHandle
+          id="model"
+          type="target"
+          position={Position.Left}
+          dataType="string"
+        />
         <DropdownInput
           label="model"
           value={modelVal}
@@ -140,7 +151,12 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
         />
       </div>
       <div className="relative px-1 py-0.5 space-y-0.5">
-        <Handle id="prompt" type="target" position={Position.Left} />
+        <TypedHandle
+          id="prompt"
+          type="target"
+          position={Position.Left}
+          dataType="string"
+        />
         {promptConnected ? (
           <ControlledInput name="prompt" value={prompt} />
         ) : (

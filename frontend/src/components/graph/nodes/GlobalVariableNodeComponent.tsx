@@ -1,4 +1,4 @@
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import DropdownInput from "../inputs/DropdownInput";
 import { useState } from "react";
@@ -6,6 +6,7 @@ import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
 import { Data, Port } from "../../../graph/types";
+import TypedHandle from "../TypedHandle";
 
 export type VariableNodeProps = {
   id: string;
@@ -47,8 +48,10 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
     shallow
   );
 
-  const varValue =
-    getVariableList().filter((v) => v.id === value)[0]?.value ?? "";
+  const variable = getVariableList().filter((v) => v.id === value)[0] ?? {
+    type: "string",
+    value: "",
+  };
   return (
     <BaseNodeComponent title="Global Variable">
       <div className="relative px-1 py-0.5 space-y-0.5">
@@ -75,14 +78,14 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
             />
           </div>
           <div className="flex-grow flex-1 flex items-center">
-            <ControlledInput name="" value={varValue} />
+            <ControlledInput name="" value={variable.value} />
           </div>
         </div>
-        <Handle
+        <TypedHandle
           id="output"
           type="source"
           position={Position.Right}
-          className="w-3 h-3 bg-red"
+          dataType={variable.type}
         />
       </div>
     </BaseNodeComponent>
