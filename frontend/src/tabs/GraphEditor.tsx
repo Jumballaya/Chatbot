@@ -17,8 +17,9 @@ const graphSelector = (store: GraphState) => ({
   edges: store.edges,
   onNodesChange: store.onNodesChange,
   onEdgesChange: store.onEdgesChange,
-  addEdge: store.addEdge,
+  handleConnect: store.handleConnect,
   onEdgesDelete: store.onEdgesDelete,
+  isValidConnection: store.isValidConnection,
 });
 
 const nodeTypes = {
@@ -43,7 +44,8 @@ export default function GraphEditorTab() {
       onNodesChange={graphStore.onNodesChange}
       onEdgesChange={graphStore.onEdgesChange}
       onEdgesDelete={graphStore.onEdgesDelete}
-      onConnect={graphStore.addEdge}
+      onConnect={graphStore.handleConnect}
+      isValidConnection={graphStore.isValidConnection}
     >
       <Panel position="top-right">
         <GraphToolBar />

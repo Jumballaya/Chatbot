@@ -1,57 +1,72 @@
 import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import DropdownInput from "../inputs/DropdownInput";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
-import { Data, Port } from "../../../graph/types";
+import type {
+  Data,
+  Port,
+  VariableType,
+  VariableValue,
+} from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
+
+//
+//
+//  @TODO: Create a useGlobalVariable() hook
+//          I want the global variable editor to live-update the
+//          GlobalVariableNodeComponent so that it updates the
+//          downstream nodes as well
+//
+//
 
 export type VariableNodeProps = {
   id: string;
   data: {
-    targets: { variableName: Port<"string"> };
     sources: { output: Port<"any"> };
   };
 };
 
 const selector = (id: string) => (store: GraphState) => ({
-  setVariable: (variableName: string, output: string | number | boolean) => {
+  setOutput: (value: VariableValue, type: VariableType) => {
     const node = store.nodes.find((v) => v.id === id);
     if (!node) return;
     store.updateNode(id, {
-      targets: {
-        ...(node.data.targets as object),
-        variableName: {
-          ...(node.data.targets as Data).variableName,
-          value: variableName,
-        },
-      },
       sources: {
         ...(node.data.sources as object),
         output: {
           ...(node.data.sources as Data).output,
-          value: output,
+          value,
+          type,
         },
       },
     });
-    store.propagateValueToDownstream(id, "output", output);
+    store.propagateValueToDownstream(id, "output", value);
   },
   getVariableList: store.getVariableList,
+  getActiveGraph: store.getActiveGraph,
 });
 
 export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
-  const [value, setValue] = useState("llm_model");
-  const { setVariable, getVariableList } = useGraphStore(
+  const { setOutput, getVariableList, getActiveGraph } = useGraphStore(
     selector(props.id),
     shallow
   );
+  const [varName, setVarName] = useState<string>("");
+  const [varVal, setVarVal] = useState<VariableValue>("");
+  const [varType, setVarType] = useState<VariableType>("string");
 
-  const variable = getVariableList().filter((v) => v.id === value)[0] ?? {
-    type: "string",
-    value: "",
-  };
+  useEffect(() => {
+    const varDef = getActiveGraph().getVariableDef(varName);
+    if (varDef) {
+      setOutput(varDef.value, varDef.type);
+      setVarVal(varDef.value);
+      setVarType(varDef.type);
+    }
+  }, [varName]);
+
   return (
     <BaseNodeComponent title="Global Variable">
       <div className="relative px-1 py-0.5 space-y-0.5">
@@ -59,33 +74,31 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
           <div className="flex-grow flex-1 flex items-center">
             <DropdownInput
               label=""
-              value={value}
+              value={varName}
+              placeholder={"Click to Choose Variable"}
               options={getVariableList().map((v) => ({
                 key: v.name,
                 value: v.id,
               }))}
               onChange={(e) => {
-                setValue(e.target.value);
-                setVariable(
-                  e.target.value,
-                  useGraphStore
-                    .getState()
-                    .getActiveGraph()
-                    .getVariable(e.target.value)
-                    ?.toString() ?? ""
-                );
+                const variableName = e.target.value;
+                const varDef = getActiveGraph().getVariableDef(e.target.value);
+                if (varDef) {
+                  setOutput(varDef.value, varDef.type);
+                }
+                setVarName(variableName);
               }}
             />
           </div>
           <div className="flex-grow flex-1 flex items-center">
-            <ControlledInput name="" value={variable.value} />
+            <ControlledInput name="" value={varVal} />
           </div>
         </div>
         <TypedHandle
           id="output"
           type="source"
           position={Position.Right}
-          dataType={variable.type}
+          dataType={varType}
         />
       </div>
     </BaseNodeComponent>

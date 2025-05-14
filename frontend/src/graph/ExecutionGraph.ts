@@ -255,7 +255,7 @@ export class ExecutionGraph {
         : "");
 
     const id = nanoid(8);
-    this._definitions[id] = { id, name, type, value: defaultValue };
+    this._definitions[id] = { id, name, type, value: initial ?? defaultValue };
     this._variables[name] = defaultValue;
     return id;
   }
@@ -282,6 +282,11 @@ export class ExecutionGraph {
   public getVariable<T extends VariableValue>(name: string): T | undefined {
     const found = this._definitions[name];
     if (found) return found.value as T;
+  }
+
+  public getVariableDef(name: string): VariableDef | undefined {
+    const found = this._definitions[name];
+    if (found) return found;
   }
 
   public hasVariableId(id: string) {

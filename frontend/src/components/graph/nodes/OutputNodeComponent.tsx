@@ -6,7 +6,7 @@ import TypedHandle from "../TypedHandle";
 export type OutputNodeProps = {
   id: string;
   data: {
-    target: { output: Port<"string"> };
+    targets: { input: Port<"string"> };
   };
 };
 

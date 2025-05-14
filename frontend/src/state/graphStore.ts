@@ -11,6 +11,7 @@ import { ExecutionGraph } from "../graph/ExecutionGraph";
 import { createWithEqualityFn } from "zustand/traditional";
 import { nanoid } from "nanoid";
 import type { VariableDef, GraphNodeType, Data } from "../graph/types";
+import { validateConnection } from "../graph/validators";
 
 export interface GraphState {
   nodes: Node[];
@@ -21,8 +22,9 @@ export interface GraphState {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onEdgesDelete: (edges: Edge[]) => void;
-
+  handleConnect: (connection: Connection) => void;
   addEdge: (conn: Connection) => void;
+  isValidConnection: (connection: Edge | Connection) => boolean;
 
   updateNode: (id: string, partial: Data) => void;
   createNode: (type: GraphNodeType) => void;
@@ -51,6 +53,7 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
         const graph = new ExecutionGraph();
         graph.addVariable("initial_prompt", "string", "Why is the sky blue?");
         graph.addVariable("llm_model", "string", "gemma3:4b");
+        graph.addVariable("test123", "number", 10);
         return graph;
       })(),
     },
@@ -69,6 +72,21 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     });
   },
 
+  handleConnect(connection: Connection) {
+    const { nodes, edges, addEdge } = useGraphStore.getState();
+    const error = validateConnection(connection, nodes, edges);
+    if (error) {
+      console.warn("Connection rejected:", error);
+      return;
+    }
+    addEdge(connection);
+  },
+
+  isValidConnection(connection: Edge | Connection): boolean {
+    const { nodes, edges } = useGraphStore.getState();
+    return validateConnection(connection, nodes, edges) === null;
+  },
+
   createNode(type: GraphNodeType) {
     const id = nanoid(8);
     switch (type) {
@@ -78,7 +96,7 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           id,
           data: {
             targets: {
-              text: {
+              input: {
                 connected: false,
                 type: "string",
                 value: "",
@@ -161,13 +179,6 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type,
           id,
           data: {
-            targets: {
-              variableName: {
-                connected: false,
-                type: "string",
-                value: "",
-              },
-            },
             sources: {
               output: {
                 connected: false,

@@ -33,8 +33,8 @@ export default function Select({
   return (
     <div className="flex items-center space-x-2 w-full">
       {label && (
-        <span className="text-sm text-zinc-600 dark:text-zinc-400">
-          {label}:
+        <span className="text-xs text-zinc-600 dark:text-zinc-400 mr-3">
+          {label}
         </span>
       )}
 

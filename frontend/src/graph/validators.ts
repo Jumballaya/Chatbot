@@ -1,5 +1,6 @@
-import type { NodeId } from "./types";
+import type { Data, NodeId } from "./types";
 import type { ExecutionGraph } from "./ExecutionGraph";
+import { Connection, Edge, Node } from "@xyflow/react";
 
 export function validateGraph(graph: ExecutionGraph): void {
   validateRequiredInputs(graph);
@@ -89,4 +90,42 @@ export function validateAcyclicGraph(graph: ExecutionGraph): void {
   for (const node of graph.nodes.values()) {
     dfs(node.id);
   }
+}
+
+export function validateConnection(
+  conn: Edge | Connection,
+  nodes: Node[],
+  edges: Edge[]
+): string | null {
+  const sourceNode = nodes.find((n) => n.id === conn.source);
+  const targetNode = nodes.find((n) => n.id === conn.target);
+  if (!sourceNode || !targetNode || !conn.sourceHandle || !conn.targetHandle) {
+    return "Missing node of handle";
+  }
+
+  const sourceType = (sourceNode.data?.sources as Data)?.[conn.sourceHandle]
+    ?.type;
+  const targetType = (targetNode.data?.targets as Data)?.[conn.targetHandle]
+    ?.type;
+
+  if (!sourceType || !targetType) {
+    return "Missing type information";
+  }
+
+  if (
+    sourceType !== targetType &&
+    sourceType !== "any" &&
+    targetType !== "any"
+  ) {
+    return `Type mismatch: cannot connect ${sourceType} to ${targetType}`;
+  }
+
+  const alreadyConnected = edges.some(
+    (e) => e.target === conn.target && e.targetHandle === conn.targetHandle
+  );
+  if (alreadyConnected) {
+    return `Input port '${conn.targetHandle}' is already connected`;
+  }
+
+  return null;
 }
