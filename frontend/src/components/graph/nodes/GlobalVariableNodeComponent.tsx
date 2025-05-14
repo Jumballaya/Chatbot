@@ -5,7 +5,7 @@ import { useState } from "react";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
-import { Port } from "../../../graph/types";
+import { Data, Port } from "../../../graph/types";
 
 export type VariableNodeProps = {
   id: string;
@@ -21,20 +21,21 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       sources: {
-        ...(node.data.sources as any),
+        ...(node.data.sources as object),
         variableName: {
-          ...((node.data.sources as any).variableName as any),
+          ...(node.data.sources as Data).variableName,
           value: variableName,
         },
       },
       targets: {
-        ...(node.data.targets as any),
+        ...(node.data.targets as object),
         output: {
-          ...((node.data.targets as any).output as any),
+          ...(node.data.targets as Data).output,
           value: output,
         },
       },
     });
+    store.propagateValueToDownstream(id, "output", output);
   },
   getVariableList: store.getVariableList,
 });

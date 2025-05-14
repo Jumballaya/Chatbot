@@ -21,10 +21,16 @@ export interface GraphState {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onEdgesDelete: (edges: Edge[]) => void;
+
   addEdge: (conn: Connection) => void;
 
   updateNode: (id: string, partial: Data) => void;
   createNode: (type: GraphNodeType) => void;
+  propagateValueToDownstream: (
+    sourceId: string,
+    sourcePort: string,
+    value: unknown
+  ) => void;
 
   setActiveGraph: (id: string | null) => void;
   getActiveGraph: () => ExecutionGraph;
@@ -210,17 +216,18 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const target = state.nodes.find((n) => n.id === data.target);
 
     if (source && target && data.sourceHandle && data.targetHandle) {
-      const value = (source.data.targets as any)[data.sourceHandle].value;
+      const value = (source.data.targets as Data)[data.sourceHandle].value;
       state.updateNode(target.id, {
         sources: {
-          ...(target.data.sources as any),
+          ...(target.data.sources as Data),
           [data.targetHandle]: {
-            ...(target.data.sources as any)[data.targetHandle],
+            ...(target.data.sources as Data)[data.targetHandle],
             connected: true,
             value,
           },
         },
       });
+      state.propagateValueToDownstream(target.id, data.targetHandle, value);
     }
 
     const id = nanoid(6);
@@ -237,20 +244,50 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
       if (target && targetHandle) {
         state.updateNode(target.id, {
           sources: {
-            ...(target.data.sources as any),
+            ...(target.data.sources as Data),
             [targetHandle]: {
-              ...(target.data.sources as any)[targetHandle],
+              ...(target.data.sources as Data)[targetHandle],
               connected: false,
               value: "",
             },
           },
         });
+        state.propagateValueToDownstream(target.id, targetHandle, "");
       }
     }
 
     set((s) => ({
       edges: s.edges.filter((e) => !deleted.some((d) => d.id === e.id)),
     }));
+  },
+
+  propagateValueToDownstream(
+    sourceId: string,
+    sourcePort: string,
+    value: unknown
+  ) {
+    const state = get();
+    const edges = state.edges.filter(
+      (e) => e.source === sourceId && e.sourceHandle === sourcePort
+    );
+
+    for (const edge of edges) {
+      const target = state.nodes.find((n) => n.id === edge.target);
+      if (!target || !edge.targetHandle) continue;
+
+      const targetPort = edge.targetHandle;
+      const newSources = {
+        ...(target.data.sources as Data),
+        [targetPort]: {
+          ...(target.data.sources as Data)[targetPort],
+          value,
+          connected: true,
+        },
+      };
+
+      state.updateNode(target.id, { sources: newSources });
+      state.propagateValueToDownstream(target.id, targetPort, value);
+    }
   },
 
   compileGraph(id) {

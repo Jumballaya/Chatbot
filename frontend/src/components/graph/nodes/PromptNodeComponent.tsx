@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import ControlledInput from "../inputs/ControlledInput";
-import { Port } from "../../../graph/types";
+import { Data, Port } from "../../../graph/types";
 
 export type PromptNodeProps = {
   id: string;
@@ -23,7 +23,7 @@ const selector = (id: string) => (store: GraphState) => ({
       sources: {
         ...(node.data.sources as object),
         input: {
-          ...((node.data.sources as any).input as object),
+          ...(node.data.sources as Data).input,
           value: input,
         },
       },
@@ -38,11 +38,12 @@ const selector = (id: string) => (store: GraphState) => ({
       targets: {
         ...(node.data.targets as object),
         prompt: {
-          ...((node.data.targets as any).prompt as object),
+          ...(node.data.targets as Data).prompt,
           value: prompt,
         },
       },
     });
+    store.propagateValueToDownstream(id, "prompt", prompt);
   },
 });
 

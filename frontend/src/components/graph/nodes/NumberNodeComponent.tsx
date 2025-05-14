@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import NumberInput from "../inputs/NumberInput";
-import { Port } from "../../../graph/types";
+import { Data, Port } from "../../../graph/types";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 
 export type NumberNodeProps = {
@@ -20,13 +20,14 @@ const selector = (id: string) => (store: GraphState) => ({
       targets: {
         ...(node.data.targets as object),
         number: {
-          ...((node.data.targets as any).number as object),
+          ...(node.data.targets as Data).number,
           value: number,
         },
       },
     });
+    store.propagateValueToDownstream(id, "number", number);
   },
-  number: (store.nodes.find((v) => v.id === id)?.data.targets as any).number,
+  number: (store.nodes.find((v) => v.id === id)?.data.targets as Data).number,
 });
 
 export default function NumberNodeComponent(props: NumberNodeProps) {

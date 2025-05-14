@@ -6,7 +6,7 @@ import DropdownInput from "../inputs/DropdownInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
-import { Port } from "../../../graph/types";
+import { Data, Port } from "../../../graph/types";
 
 export type LLMNodeProps = {
   id: string;
@@ -30,7 +30,7 @@ const selector = (id: string) => (store: GraphState) => ({
       sources: {
         ...(node.data.sources as object),
         prompt: {
-          ...((node.data.sources as any).prompt as object),
+          ...(node.data.sources as Data).prompt,
           value: prompt,
         },
       },
@@ -45,7 +45,7 @@ const selector = (id: string) => (store: GraphState) => ({
       sources: {
         ...(node.data.sources as object),
         model: {
-          ...((node.data.sources as any).model as object),
+          ...(node.data.sources as Data).model,
           value: model,
         },
       },
@@ -60,7 +60,7 @@ const selector = (id: string) => (store: GraphState) => ({
       sources: {
         ...(node.data.sources as object),
         stream: {
-          ...((node.data.sources as any).stream as object),
+          ...(node.data.sources as Data).stream,
           value: stream,
         },
       },
@@ -75,7 +75,7 @@ const selector = (id: string) => (store: GraphState) => ({
       sources: {
         ...(node.data.sources as object),
         system: {
-          ...((node.data.sources as any).system as object),
+          ...(node.data.sources as Data).system,
           value: system,
         },
       },
@@ -90,11 +90,12 @@ const selector = (id: string) => (store: GraphState) => ({
       targets: {
         ...(node.data.targets as object),
         llm_output: {
-          ...((node.data.targets as any).llm_output as object),
+          ...(node.data.targets as Data).llm_output,
           value: llm_output,
         },
       },
     });
+    store.propagateValueToDownstream(id, "llm_output", llm_output);
   },
 });
 

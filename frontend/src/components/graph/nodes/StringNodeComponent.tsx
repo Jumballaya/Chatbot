@@ -2,7 +2,7 @@ import { Handle, Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
-import { Port } from "../../../graph/types";
+import { Data, Port } from "../../../graph/types";
 
 export type StringNodeProps = {
   id: string;
@@ -20,13 +20,14 @@ const selector = (id: string) => (store: GraphState) => ({
       targets: {
         ...(node.data.targets as object),
         string: {
-          ...((node.data.targets as any).string as object),
+          ...(node.data.targets as Data).string,
           value: string,
         },
       },
     });
+    store.propagateValueToDownstream(id, "string", string);
   },
-  string: (store.nodes.find((v) => v.id === id)?.data.targets as any).string,
+  string: (store.nodes.find((v) => v.id === id)?.data.targets as Data).string,
 });
 
 export default function StringNodeComponent(props: StringNodeProps) {
