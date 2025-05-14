@@ -11,13 +11,13 @@ import { Data, Port } from "../../../graph/types";
 export type LLMNodeProps = {
   id: string;
   data: {
-    sources: {
+    sources: { llm_output: Port<"string"> };
+    targets: {
       prompt: Port<"string">;
       model: Port<"string">;
       system: Port<"string">;
       stream: Port<"boolean">;
     };
-    targets: { llm_output: Port<"string"> };
   };
 };
 
@@ -27,10 +27,10 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       ...node.data,
-      sources: {
-        ...(node.data.sources as object),
+      targets: {
+        ...(node.data.targets as object),
         prompt: {
-          ...(node.data.sources as Data).prompt,
+          ...(node.data.targets as Data).prompt,
           value: prompt,
         },
       },
@@ -42,10 +42,10 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       ...node.data,
-      sources: {
-        ...(node.data.sources as object),
+      targets: {
+        ...(node.data.targets as object),
         model: {
-          ...(node.data.sources as Data).model,
+          ...(node.data.targets as Data).model,
           value: model,
         },
       },
@@ -57,10 +57,10 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       ...node.data,
-      sources: {
-        ...(node.data.sources as object),
+      targets: {
+        ...(node.data.targets as object),
         stream: {
-          ...(node.data.sources as Data).stream,
+          ...(node.data.targets as Data).stream,
           value: stream,
         },
       },
@@ -72,10 +72,10 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       ...node.data,
-      sources: {
-        ...(node.data.sources as object),
+      targets: {
+        ...(node.data.targets as object),
         system: {
-          ...(node.data.sources as Data).system,
+          ...(node.data.targets as Data).system,
           value: system,
         },
       },
@@ -87,10 +87,10 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       ...node.data,
-      targets: {
-        ...(node.data.targets as object),
+      sources: {
+        ...(node.data.sources as object),
         llm_output: {
-          ...(node.data.targets as Data).llm_output,
+          ...(node.data.sources as Data).llm_output,
           value: llm_output,
         },
       },
@@ -100,15 +100,15 @@ const selector = (id: string) => (store: GraphState) => ({
 });
 
 export default function LLMNodeComponent(props: LLMNodeProps) {
-  const [promptVal, setPromptVal] = useState(props.data.sources.prompt.value);
-  const [modelVal, setModelVal] = useState(props.data.sources.model.value);
+  const [promptVal, setPromptVal] = useState(props.data.targets.prompt.value);
+  const [modelVal, setModelVal] = useState(props.data.targets.model.value);
 
   const node = useGraphStore(selector(props.id), shallow);
 
-  const prompt = props.data.sources.prompt.value;
-  const promptConnected = props.data.sources.prompt.connected;
-  const model = props.data.sources.model.value;
-  const modelConnected = props.data.sources.model.connected;
+  const prompt = props.data.targets.prompt.value;
+  const promptConnected = props.data.targets.prompt.connected;
+  const model = props.data.targets.model.value;
+  const modelConnected = props.data.targets.model.connected;
 
   useEffect(() => {
     setPromptVal(prompt);

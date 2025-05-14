@@ -10,8 +10,8 @@ import { Data, Port } from "../../../graph/types";
 export type VariableNodeProps = {
   id: string;
   data: {
-    sources: { variableName: Port<"string"> };
-    targets: { output: Port<"any"> };
+    targets: { variableName: Port<"string"> };
+    sources: { output: Port<"any"> };
   };
 };
 
@@ -20,17 +20,17 @@ const selector = (id: string) => (store: GraphState) => ({
     const node = store.nodes.find((v) => v.id === id);
     if (!node) return;
     store.updateNode(id, {
-      sources: {
-        ...(node.data.sources as object),
+      targets: {
+        ...(node.data.targets as object),
         variableName: {
-          ...(node.data.sources as Data).variableName,
+          ...(node.data.targets as Data).variableName,
           value: variableName,
         },
       },
-      targets: {
-        ...(node.data.targets as object),
+      sources: {
+        ...(node.data.sources as object),
         output: {
-          ...(node.data.targets as Data).output,
+          ...(node.data.sources as Data).output,
           value: output,
         },
       },

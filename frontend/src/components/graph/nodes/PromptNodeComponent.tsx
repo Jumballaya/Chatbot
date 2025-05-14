@@ -9,8 +9,8 @@ import { Data, Port } from "../../../graph/types";
 export type PromptNodeProps = {
   id: string;
   data: {
-    sources: { input: Port<"string"> };
-    targets: { prompt: Port<"string"> };
+    targets: { input: Port<"string"> };
+    sources: { prompt: Port<"string"> };
   };
 };
 
@@ -20,10 +20,10 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       ...node.data,
-      sources: {
-        ...(node.data.sources as object),
+      targets: {
+        ...(node.data.targets as object),
         input: {
-          ...(node.data.sources as Data).input,
+          ...(node.data.targets as Data).input,
           value: input,
         },
       },
@@ -35,10 +35,10 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       ...node.data,
-      targets: {
-        ...(node.data.targets as object),
+      sources: {
+        ...(node.data.sources as object),
         prompt: {
-          ...(node.data.targets as Data).prompt,
+          ...(node.data.sources as Data).prompt,
           value: prompt,
         },
       },
@@ -48,11 +48,11 @@ const selector = (id: string) => (store: GraphState) => ({
 });
 
 export default function PromptNodeComponent(props: PromptNodeProps) {
-  const [val, setVal] = useState(props.data.sources.input.value ?? "");
+  const [val, setVal] = useState(props.data.targets.input.value ?? "");
   const node = useGraphStore(selector(props.id));
 
-  const prompt = props.data.sources.input.value;
-  const promptConnected = props.data.sources.input.connected;
+  const prompt = props.data.targets.input.value;
+  const promptConnected = props.data.targets.input.connected;
   useEffect(() => {
     setVal(prompt);
     if (promptConnected) {

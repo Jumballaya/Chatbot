@@ -5,7 +5,7 @@ import { Port } from "../../../graph/types";
 export type OutputNodeProps = {
   id: string;
   data: {
-    targets: { output: Port<"string"> };
+    target: { output: Port<"string"> };
   };
 };
 

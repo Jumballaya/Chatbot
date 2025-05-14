@@ -7,7 +7,7 @@ import { Data, Port } from "../../../graph/types";
 export type StringNodeProps = {
   id: string;
   data: {
-    targets: { string: Port<"string"> };
+    source: { string: Port<"string"> };
   };
 };
 
@@ -17,17 +17,17 @@ const selector = (id: string) => (store: GraphState) => ({
     if (!node) return;
     store.updateNode(id, {
       ...node.data,
-      targets: {
-        ...(node.data.targets as object),
+      sources: {
+        ...(node.data.sources as object),
         string: {
-          ...(node.data.targets as Data).string,
+          ...(node.data.sources as Data).string,
           value: string,
         },
       },
     });
     store.propagateValueToDownstream(id, "string", string);
   },
-  string: (store.nodes.find((v) => v.id === id)?.data.targets as Data).string,
+  string: (store.nodes.find((v) => v.id === id)?.data.sources as Data).string,
 });
 
 export default function StringNodeComponent(props: StringNodeProps) {

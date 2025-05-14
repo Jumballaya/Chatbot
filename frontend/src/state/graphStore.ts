@@ -77,7 +77,7 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type: "out",
           id,
           data: {
-            sources: {
+            targets: {
               text: {
                 connected: false,
                 type: "string",
@@ -95,14 +95,14 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type,
           id,
           data: {
-            sources: {
+            targets: {
               input: {
                 type: "string",
                 value: "",
                 connected: false,
               },
             },
-            targets: {
+            sources: {
               prompt: {
                 type: "string",
                 value: "",
@@ -120,7 +120,7 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type,
           id,
           data: {
-            sources: {
+            targets: {
               prompt: {
                 connected: false,
                 type: "string",
@@ -143,7 +143,7 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
               },
             },
 
-            targets: {
+            sources: {
               llm_output: {
                 connected: false,
                 type: "string",
@@ -161,14 +161,14 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type,
           id,
           data: {
-            sources: {
+            targets: {
               variableName: {
                 connected: false,
                 type: "string",
                 value: "",
               },
             },
-            targets: {
+            sources: {
               output: {
                 connected: false,
                 type: "string",
@@ -186,11 +186,29 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
           type,
           id,
           data: {
-            targets: {
+            sources: {
               number: {
                 connected: false,
                 type: "number",
                 value: 0,
+              },
+            },
+          },
+          position: { x: 100, y: 100 },
+        };
+        set({ nodes: [...get().nodes, node] });
+        break;
+      }
+      case "string": {
+        const node = {
+          type,
+          id,
+          data: {
+            sources: {
+              string: {
+                connected: false,
+                type: "string",
+                value: "",
               },
             },
           },
@@ -216,12 +234,12 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const target = state.nodes.find((n) => n.id === data.target);
 
     if (source && target && data.sourceHandle && data.targetHandle) {
-      const value = (source.data.targets as Data)[data.sourceHandle].value;
+      const value = (source.data.sources as Data)[data.sourceHandle].value;
       state.updateNode(target.id, {
-        sources: {
-          ...(target.data.sources as Data),
+        targets: {
+          ...(target.data.targets as Data),
           [data.targetHandle]: {
-            ...(target.data.sources as Data)[data.targetHandle],
+            ...(target.data.targets as Data)[data.targetHandle],
             connected: true,
             value,
           },
@@ -238,15 +256,14 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
   onEdgesDelete(deleted) {
     const state = get();
     for (const edge of deleted) {
-      console.log(edge);
       const { targetHandle } = edge;
       const target = state.nodes.find((n) => n.id === edge.target);
       if (target && targetHandle) {
         state.updateNode(target.id, {
-          sources: {
-            ...(target.data.sources as Data),
+          targets: {
+            ...(target.data.targets as Data),
             [targetHandle]: {
-              ...(target.data.sources as Data)[targetHandle],
+              ...(target.data.targets as Data)[targetHandle],
               connected: false,
               value: "",
             },
@@ -276,16 +293,16 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
       if (!target || !edge.targetHandle) continue;
 
       const targetPort = edge.targetHandle;
-      const newSources = {
-        ...(target.data.sources as Data),
+      const newTargets = {
+        ...(target.data.targets as Data),
         [targetPort]: {
-          ...(target.data.sources as Data)[targetPort],
+          ...(target.data.targets as Data)[targetPort],
           value,
           connected: true,
         },
       };
 
-      state.updateNode(target.id, { sources: newSources });
+      state.updateNode(target.id, { targets: newTargets });
       state.propagateValueToDownstream(target.id, targetPort, value);
     }
   },
