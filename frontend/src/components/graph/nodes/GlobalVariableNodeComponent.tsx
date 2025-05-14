@@ -1,26 +1,13 @@
 import { Position } from "@xyflow/react";
 import BaseNodeComponent from "./BaseNodeComponent";
 import DropdownInput from "../inputs/DropdownInput";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
-import type {
-  Data,
-  Port,
-  VariableType,
-  VariableValue,
-} from "../../../graph/types";
+import type { Port, VariableValue } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
-
-//
-//
-//  @TODO: Create a useGlobalVariable() hook
-//          I want the global variable editor to live-update the
-//          GlobalVariableNodeComponent so that it updates the
-//          downstream nodes as well
-//
-//
+import useGlobalVariable from "../../../hooks/useGlobalVariable";
 
 export type VariableNodeProps = {
   id: string;
@@ -30,21 +17,9 @@ export type VariableNodeProps = {
 };
 
 const selector = (id: string) => (store: GraphState) => ({
-  setOutput: (value: VariableValue, type: VariableType) => {
-    const node = store.nodes.find((v) => v.id === id);
-    if (!node) return;
-    store.updateNode(id, {
-      sources: {
-        ...(node.data.sources as object),
-        output: {
-          ...(node.data.sources as Data).output,
-          value,
-          type,
-        },
-      },
-    });
-    store.propagateValueToDownstream(id, "output", value);
-  },
+  setOutput: (output: VariableValue) =>
+    store.setNodeValue(id, "output", "sources", output),
+  outputValue: store.getNodeValue(id, "output", "sources")?.value ?? "",
   getVariableList: store.getVariableList,
   getActiveGraph: store.getActiveGraph,
 });
@@ -55,18 +30,7 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
     shallow
   );
   const [varName, setVarName] = useState<string>("");
-  const [varVal, setVarVal] = useState<VariableValue>("");
-  const [varType, setVarType] = useState<VariableType>("string");
-
-  useEffect(() => {
-    const varDef = getActiveGraph().getVariableDef(varName);
-    if (varDef) {
-      setOutput(varDef.value, varDef.type);
-      setVarVal(varDef.value);
-      setVarType(varDef.type);
-    }
-  }, [varName]);
-
+  const { value, type } = useGlobalVariable(varName, getActiveGraph());
   return (
     <BaseNodeComponent title="Global Variable">
       <div className="relative px-1 py-0.5 space-y-0.5">
@@ -84,21 +48,21 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
                 const variableName = e.target.value;
                 const varDef = getActiveGraph().getVariableDef(e.target.value);
                 if (varDef) {
-                  setOutput(varDef.value, varDef.type);
+                  setOutput(varDef.value);
                 }
                 setVarName(variableName);
               }}
             />
           </div>
           <div className="flex-grow flex-1 flex items-center">
-            <ControlledInput name="" value={varVal} />
+            <ControlledInput name="" value={value} />
           </div>
         </div>
         <TypedHandle
           id="output"
           type="source"
           position={Position.Right}
-          dataType={varType}
+          dataType={type}
         />
       </div>
     </BaseNodeComponent>

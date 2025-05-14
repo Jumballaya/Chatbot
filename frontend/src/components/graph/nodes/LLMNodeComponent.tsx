@@ -8,6 +8,13 @@ import ControlledInput from "../inputs/ControlledInput";
 import { Port } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
 
+//
+//
+//  @TODO: Get the actual list of models from
+//         the chat store (move non-chat stuff to its on store)
+//
+//
+
 export type LLMNodeProps = {
   id: string;
   data: {

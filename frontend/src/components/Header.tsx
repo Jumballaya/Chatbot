@@ -14,7 +14,7 @@ export default function Header() {
           onClick={() => setSettingsActive(true)}
         >
           ⚙️
-        </span>{" "}
+        </span>
         {title}
       </h1>
 
