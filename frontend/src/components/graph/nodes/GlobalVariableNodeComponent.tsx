@@ -5,14 +5,14 @@ import { useState } from "react";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
-import type { VariableValue } from "../../../graph/types";
+import type { IOType, IOTypeMap } from "../../../graph/types";
 import TypedHandle from "../TypedHandle";
 import useGlobalVariable from "../../../hooks/useGlobalVariable";
 import { VariableNodeProps } from "../types";
 
 const selector = (id: string) => (store: GraphState) => ({
-  setOutput: (output: VariableValue) =>
-    store.setNodeValue(id, "output", "sources", { value: output }),
+  setOutput: (output: IOTypeMap[IOType], type: IOType) =>
+    store.setNodeValue(id, "output", "sources", { value: output, type }),
   outputValue: store.getNodeValue(id, "output", "sources")?.value ?? "",
   getVariableList: store.getVariableList,
   getActiveGraph: store.getActiveGraph,
@@ -25,6 +25,7 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
   );
   const [varName, setVarName] = useState<string>("");
   const { value, type } = useGlobalVariable(varName, getActiveGraph());
+
   return (
     <BaseNodeComponent title="Global Variable">
       <div className="relative px-1 py-0.5 space-y-0.5">
@@ -42,7 +43,7 @@ export default function GlobalVariableNodeComponent(props: VariableNodeProps) {
                 const variableName = e.target.value;
                 const varDef = getActiveGraph().getVariableDef(e.target.value);
                 if (varDef) {
-                  setOutput(varDef.value);
+                  setOutput(varDef.value, varDef.type);
                 }
                 setVarName(variableName);
               }}

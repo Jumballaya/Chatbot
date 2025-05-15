@@ -37,18 +37,14 @@ export interface GraphState {
   setEdges: (edges: Edge[]) => void;
   isValidConnection: (connection: Edge | Connection) => boolean;
 
-  updateNode: (
-    id: string,
-    partial: Partial<GraphData>,
-    removeEdges?: boolean
-  ) => void;
+  updateNode: (id: string, partial: Partial<GraphData>) => void;
   createNode: (type: GraphNodeType) => void;
   setNodeValue: <T extends IOType>(
     id: string,
     port: string,
     direction: PortDirection,
     value: Partial<Port<T>>,
-    removeEdges?: boolean
+    propagate?: boolean
   ) => void;
   getNodeValue<T extends IOType>(
     id: string,
@@ -121,38 +117,34 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     set({ nodes: [...get().nodes, node] });
   },
 
-  updateNode(id, partial, removeEdges = true) {
+  updateNode(id, partial) {
     set({
       nodes: get().nodes.map((node) =>
         node.id === id ? { ...node, data: { ...node.data, ...partial } } : node
       ),
     });
-
-    if (removeEdges) {
-      get().removeInvalidEdges(id);
-    }
   },
 
-  setNodeValue(id, port, direction, value, removeEdges = true) {
+  setNodeValue(id, port, direction, value, propagate = true) {
     const node = get().nodes.find((n) => n.id === id);
     if (!node) return;
     const data = node.data as Data;
     if (!data[direction]) return;
 
-    get().updateNode(
-      id,
-      {
-        [direction]: {
-          ...data[direction],
-          [port]: {
-            ...data[direction][port],
-            ...value,
-          },
+    get().updateNode(id, {
+      [direction]: {
+        ...data[direction],
+        [port]: {
+          ...data[direction][port],
+          ...value,
         },
       },
-      removeEdges
-    );
-    get().propagateValueToDownstream(id, port, value);
+    });
+
+    if (propagate) {
+      get().removeInvalidEdges(id);
+      get().propagateValueToDownstream(id, port, value);
+    }
   },
 
   getNodeValue(id, port, direction) {
