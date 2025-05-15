@@ -17,6 +17,8 @@ import {
 import { validateGraph } from "./validators";
 import { GraphVariables } from "./GraphVariables";
 import { LLMNode } from "./nodes/LLMNode";
+import { NumberNode } from "./nodes/NumberNode";
+import { BooleanNode } from "./nodes/BooleanNode";
 
 type GenericNode = GraphNode<GraphNodeType>;
 
@@ -71,6 +73,20 @@ export class ExecutionGraph {
         this.nodes.set(node.id, node);
         break;
       }
+      case "number": {
+        const { name, retry, onComplete } = config;
+        const node = new NumberNode(name, retry, onComplete);
+        if (this.root === "") this.root = node.id;
+        this.nodes.set(node.id, node);
+        break;
+      }
+      case "boolean": {
+        const { name, retry, onComplete } = config;
+        const node = new BooleanNode(name, retry, onComplete);
+        if (this.root === "") this.root = node.id;
+        this.nodes.set(node.id, node);
+        break;
+      }
       case "output": {
         const { name, retry, onComplete } = config;
         const node = new OutputNode(name, retry, onComplete);
@@ -113,7 +129,6 @@ export class ExecutionGraph {
     const fromNode = this.nodes.get(edge.fromNode);
     const toNode = this.nodes.get(edge.toNode);
     if (!fromNode || !toNode) {
-      console.log(edge, fromNode, toNode);
       throw new Error("Invalid node reference");
     }
 

@@ -8,6 +8,7 @@ import { shallow } from "zustand/shallow";
 import usePropagateInputToOutput from "../../../hooks/usePropagateInputToOutput";
 import { PromptNodeProps } from "../types";
 import { VariableValue } from "../../../graph/types";
+import NodeRow from "../NodeRow";
 
 const selector = (id: string) => (store: GraphState) => ({
   setPrompt: (prompt: VariableValue) =>
@@ -29,7 +30,7 @@ export default function PromptNodeComponent(props: PromptNodeProps) {
 
   return (
     <BaseNodeComponent title="Prompt">
-      <div className="relative px-1 py-0.5 space-y-0.5">
+      <NodeRow>
         <TypedHandle
           id="input"
           type="target"
@@ -52,7 +53,7 @@ export default function PromptNodeComponent(props: PromptNodeProps) {
           position={Position.Right}
           dataType="string"
         />
-      </div>
+      </NodeRow>
     </BaseNodeComponent>
   );
 }

@@ -20,11 +20,11 @@ export default function TypedHandle(props: TypedHandleProps) {
       id={props.id}
       type={props.type}
       position={props.position}
-      className="w-3 h-3 rounded-full border border-black"
       style={{
         backgroundColor: colorMap[props.dataType],
-        width: "10px",
-        height: "10px",
+        width: "12px",
+        height: "12px",
+        borderWidth: "2px",
       }}
     />
   );

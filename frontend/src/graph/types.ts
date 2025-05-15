@@ -165,6 +165,7 @@ export type ToolNodeConfig = BaseNodeConfig & {
 
 export type StringNodeConfig = BaseNodeConfig & { type: "string" };
 export type NumberNodeConfig = BaseNodeConfig & { type: "number" };
+export type BooleanNodeConfig = BaseNodeConfig & { type: "boolean" };
 export type PromptNodeConfig = BaseNodeConfig & { type: "prompt" };
 export type OutputNodeConfig = BaseNodeConfig & { type: "output" };
 export type VariableNodeConfig = BaseNodeConfig & { type: "variable" };
@@ -172,6 +173,7 @@ export type VariableNodeConfig = BaseNodeConfig & { type: "variable" };
 export type NodeConfig =
   | StringNodeConfig
   | NumberNodeConfig
+  | BooleanNodeConfig
   | PromptNodeConfig
   | LLMNodeConfig
   | IfNodeConfig

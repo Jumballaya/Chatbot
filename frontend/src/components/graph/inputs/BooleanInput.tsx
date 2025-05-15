@@ -1,3 +1,5 @@
+import InputLabel from "./InputLabel";
+
 type BooleanInputProps = {
   label: string;
   value: boolean;
@@ -14,10 +16,8 @@ const btnClassSize: Record<"sm" | "lg", string> = {
 };
 const btnClassFalse = "border-gray-700 bg-gray-700";
 const btnClassTrue = "border-orange-400 bg-orange-400";
-const btnClass = (v: boolean, size: "sm" | "lg" = "lg", disabled = false) =>
-  `${btnClassBase} ${btnClassSize[size]} ${
-    v && !disabled ? btnClassTrue : btnClassFalse
-  }`;
+const btnClass = (v: boolean, size: "sm" | "lg" = "lg") =>
+  `${btnClassBase} ${btnClassSize[size]} ${v ? btnClassTrue : btnClassFalse}`;
 
 const sliderClassBase = "bg-white transform transition-transform duration-200";
 const sliderClassSize: Record<"sm" | "lg", string> = {
@@ -29,29 +29,31 @@ const sliderTrue: Record<"sm" | "lg", string> = {
   sm: "translate-x-3",
 };
 const sliderFalse = "translate-x-0";
-const sliderClass = (v: boolean, size: "sm" | "lg" = "lg", disabled = false) =>
+const sliderClass = (v: boolean, size: "sm" | "lg" = "lg") =>
   `${sliderClassBase} ${sliderClassSize[size]} ${
-    v && !disabled ? sliderTrue[size] : sliderFalse
+    v ? sliderTrue[size] : sliderFalse
   }`;
 
 export default function BooleanInput(props: BooleanInputProps) {
+  const onClick = !props.disabled
+    ? () => props?.onChange?.(!props.value)
+    : undefined;
+
   return (
-    <div className="p-0.5 flex items-center justify-around">
-      <label className="block text-xs text-gray-400 mr-2">{props.label}</label>
+    <>
+      <InputLabel label={props.label} />
       <div className="flex items-center space-x-2">
         <button
           type="button"
-          onClick={() => props?.onChange?.(!props.value)}
-          className={btnClass(props.value, props.size, props.disabled)}
+          onClick={onClick}
+          className={btnClass(props.value, props.size)}
           role="switch"
           aria-checked={props.value}
           aria-label="Toggle boolean"
         >
-          <div
-            className={sliderClass(props.value, props.size, props.disabled)}
-          />
+          <div className={sliderClass(props.value, props.size)} />
         </button>
       </div>
-    </div>
+    </>
   );
 }

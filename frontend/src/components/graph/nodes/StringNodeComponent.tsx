@@ -4,6 +4,7 @@ import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import TypedHandle from "../TypedHandle";
 import { StringNodeProps } from "../types";
+import NodeRow from "../NodeRow";
 
 const selector = (id: string) => (store: GraphState) => ({
   setString: (string: string) =>
@@ -16,7 +17,7 @@ export default function StringNodeComponent(props: StringNodeProps) {
 
   return (
     <BaseNodeComponent title="String">
-      <div className="relative px-1 py-0.5 space-y-0.5">
+      <NodeRow>
         <StringInput
           label="String"
           value={value as string}
@@ -28,7 +29,7 @@ export default function StringNodeComponent(props: StringNodeProps) {
           position={Position.Right}
           dataType="string"
         />
-      </div>
+      </NodeRow>
     </BaseNodeComponent>
   );
 }

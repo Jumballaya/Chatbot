@@ -4,6 +4,7 @@ import NumberInput from "../inputs/NumberInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import TypedHandle from "../TypedHandle";
 import { NumberNodeProps } from "../types";
+import NodeRow from "../NodeRow";
 
 const selector = (id: string) => (store: GraphState) => ({
   setNumber: (number: number) =>
@@ -16,7 +17,7 @@ export default function NumberNodeComponent(props: NumberNodeProps) {
 
   return (
     <BaseNodeComponent title="Number">
-      <div className="relative px-1 py-0.5 space-y-0.5">
+      <NodeRow>
         <NumberInput
           label="Number"
           value={(node.number?.value as number) ?? 0}
@@ -30,7 +31,7 @@ export default function NumberNodeComponent(props: NumberNodeProps) {
           position={Position.Right}
           dataType="number"
         />
-      </div>
+      </NodeRow>
     </BaseNodeComponent>
   );
 }

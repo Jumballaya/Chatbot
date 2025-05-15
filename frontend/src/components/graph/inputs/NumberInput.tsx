@@ -1,4 +1,5 @@
 import type { ChangeEvent } from "react";
+import InputLabel from "./InputLabel";
 
 type NumberInputProps = {
   label: string;
@@ -12,21 +13,20 @@ type NumberInputProps = {
 
 export default function NumberInput(props: NumberInputProps) {
   return (
-    <div className="p-1 flex items-center">
-      <label className="block text-xs text-gray-400 mr-2 text-center">
-        {props.label} {props.unit ? `(${props.unit})` : ""}
-      </label>
-      <div className="flex items-center space-x-2">
-        <input
-          type="number"
-          min={props.min}
-          max={props.max}
-          step={props.step}
-          value={props.value}
-          onChange={props.onChange}
-          className="nodrag w-full bg-[#111] border border-[#444] rounded text-xs text-gray-100 p-1 focus:outline-none"
-        />
-      </div>
-    </div>
+    <>
+      <InputLabel
+        label={`${props.label} ${props.unit ? `(${props.unit})` : ""}`}
+      />
+      <input
+        type="number"
+        min={props.min}
+        max={props.max}
+        step={props.step}
+        value={props.value}
+        onChange={props.onChange}
+        className="w-full text-xs bg-[#111] border border-[#444] rounded p-1 text-white"
+        placeholder="Value"
+      />
+    </>
   );
 }

@@ -7,6 +7,9 @@ import { shallow } from "zustand/shallow";
 import ControlledInput from "../inputs/ControlledInput";
 import TypedHandle from "../TypedHandle";
 import { LLMNodeProps } from "../types";
+import NodeRow from "../NodeRow";
+import InputLabel from "../inputs/InputLabel";
+import BooleanInput from "../inputs/BooleanInput";
 
 //
 //
@@ -60,18 +63,17 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
 
   return (
     <BaseNodeComponent title="LLM">
-      <div className="relative px-1 py-0.5 space-y-0.5">
+      <NodeRow columns={1}>
         <TypedHandle
           id="llm_output"
           type="source"
           position={Position.Right}
           dataType="string"
         />
-        <span className="text-sm text-zinc-600 dark:text-zinc-400 text-right w-full block pr-2 py-1">
-          LLM Output
-        </span>
-      </div>
-      <div className="relative px-1 py-0.5 space-y-0.5">
+        <InputLabel label="LLM Output" position="end" maxWidth={32} />
+      </NodeRow>
+
+      <NodeRow>
         <TypedHandle
           id="model"
           type="target"
@@ -82,11 +84,13 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
           label="model"
           value={modelValue as string}
           onChange={(e) => setModel(e.target.value)}
+          placeholder="Select your LLM Model"
           options={[{ key: "gemma3:4b", value: "gemma3:4b" }]}
           disabled={modelConnected}
         />
-      </div>
-      <div className="relative px-1 py-0.5 space-y-0.5">
+      </NodeRow>
+
+      <NodeRow>
         <TypedHandle
           id="prompt"
           type="target"
@@ -102,8 +106,9 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
             onChange={(e) => setPrompt(e.target.value)}
           />
         )}
-      </div>
-      <div className="relative px-1 py-0.5 space-y-0.5">
+      </NodeRow>
+
+      <NodeRow>
         <TypedHandle
           id="system"
           type="target"
@@ -119,8 +124,9 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
             onChange={(e) => setSystem(e.target.value)}
           />
         )}
-      </div>
-      <div className="relative px-1 py-0.5 space-y-0.5">
+      </NodeRow>
+
+      <NodeRow>
         <TypedHandle
           id="stream"
           type="target"
@@ -128,17 +134,21 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
           dataType="boolean"
         />
         {streamConnected ? (
-          <ControlledInput name="stream?" value={streamValue.toString()} />
-        ) : (
-          <StringInput
+          <BooleanInput
             label="stream?"
-            value={(streamValue as boolean).toString()}
-            onChange={(e) =>
-              setStream(e.target.value === "true" ? true : false)
-            }
+            value={streamValue}
+            size="sm"
+            disabled={true}
+          />
+        ) : (
+          <BooleanInput
+            label="stream?"
+            value={streamValue}
+            size="sm"
+            onChange={(v) => setStream(v)}
           />
         )}
-      </div>
+      </NodeRow>
     </BaseNodeComponent>
   );
 }

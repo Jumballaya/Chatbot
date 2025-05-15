@@ -4,6 +4,7 @@ import { GraphState, useGraphStore } from "../../../state/graphStore";
 import TypedHandle from "../TypedHandle";
 import BooleanInput from "../inputs/BooleanInput";
 import { BooleanNodeProps } from "../types";
+import NodeRow from "../NodeRow";
 
 const selector = (id: string) => (store: GraphState) => ({
   setValue: (boolean: boolean) =>
@@ -16,7 +17,7 @@ export default function BooleanNodeComponent(props: BooleanNodeProps) {
 
   return (
     <BaseNodeComponent title="Boolean">
-      <div className="relative px-2 py-0.5 space-y-0.5">
+      <NodeRow>
         <BooleanInput
           label="Boolean"
           value={value}
@@ -29,7 +30,7 @@ export default function BooleanNodeComponent(props: BooleanNodeProps) {
           position={Position.Right}
           dataType="boolean"
         />
-      </div>
+      </NodeRow>
     </BaseNodeComponent>
   );
 }
