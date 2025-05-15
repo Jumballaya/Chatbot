@@ -2,14 +2,12 @@ import {
   ExecutionUpdate,
   NodeStatus,
   RetryConfig,
-  Data,
   OnCompleteCB,
   InputPort,
   OutputPort,
 } from "../types";
 import { GraphNode } from "../GraphNode";
 import { NodeContext } from "../NodeContext";
-import { ExecutionGraph } from "../ExecutionGraph";
 
 export class PromptNode extends GraphNode<"prompt"> {
   constructor(

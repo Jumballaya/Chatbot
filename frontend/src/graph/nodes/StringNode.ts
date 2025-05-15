@@ -29,12 +29,7 @@ export class StringNode extends GraphNode<"string"> {
   }
 
   public inputs(): Record<string, InputPort> {
-    return {
-      input: {
-        type: "string",
-        default: "",
-      },
-    };
+    return {};
   }
 
   public outputs(): Record<string, OutputPort> {

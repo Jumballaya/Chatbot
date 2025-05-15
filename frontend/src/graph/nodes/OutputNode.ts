@@ -20,21 +20,21 @@ export class OutputNode extends GraphNode<"output"> {
 
   public inputs(): Record<string, InputPort> {
     return {
-      text: { type: "string", required: true },
+      input: { type: "string", required: true },
     };
   }
 
   public outputs(): Record<string, OutputPort> {
     return {
-      text: { type: "string" },
+      output: { type: "string" },
     };
   }
 
   public async *execute(
     context: NodeContext
   ): AsyncIterable<ExecutionUpdate<{ text: string }>> {
-    const text = context.getInput<string>("text");
-    context.setOutput("text", text);
+    const text = context.getInput<string>("input");
+    context.setOutput("output", text);
     yield {
       status: NodeStatus.Completed,
       output: { text },

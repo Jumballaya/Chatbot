@@ -22,6 +22,7 @@ import type {
 import { validateConnection } from "../graph/validators";
 import type { GraphData } from "../components/graph/types";
 import { createInitialNode } from "../graph/reactNodeFactory";
+import { addNodeFromReactFlow } from "../graph/reactFlowAdapter";
 
 export interface GraphState {
   nodes: Node<GraphData>[];
@@ -288,18 +289,18 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const { nodes, edges, graphs } = get();
     const graph = graphs[id].graph ?? new ExecutionGraph();
 
-    // for (const node of nodes) {
-    //   graph.addNodeFromReactFlow(node);
-    // }
+    for (const node of nodes) {
+      addNodeFromReactFlow(node, graph);
+    }
 
-    // for (const edge of edges) {
-    //   graph.addEdge({
-    //     fromNode: edge.source,
-    //     toNode: edge.target,
-    //     fromPort: edge.sourceHandle ?? "output",
-    //     toPort: edge.targetHandle ?? "input",
-    //   });
-    // }
+    for (const edge of edges) {
+      graph.addEdge({
+        fromNode: edge.source,
+        toNode: edge.target,
+        fromPort: edge.sourceHandle ?? "output",
+        toPort: edge.targetHandle ?? "input",
+      });
+    }
 
     set((s) => ({
       graphs: {

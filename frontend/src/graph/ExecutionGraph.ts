@@ -1,13 +1,9 @@
 import { nanoid } from "nanoid";
 import { GraphNode } from "./GraphNode";
 import { NodeContext } from "./NodeContext";
-import { IfNode } from "./nodes/IfNode";
-import { LLMNode } from "./nodes/LLMNode";
 import { OutputNode } from "./nodes/OutputNode";
 import { PromptNode } from "./nodes/PromptNode";
 import { StringNode } from "./nodes/StringNode";
-import { ToolCallNode } from "./nodes/ToolCallNode";
-import { ToolNode } from "./nodes/ToolNode";
 import {
   ConditionalValue,
   ExecutionUpdate,
@@ -23,8 +19,6 @@ import {
   Data,
 } from "./types";
 import { validateGraph } from "./validators";
-import { VariableNode } from "./nodes/VariableNode";
-import { NumberNode } from "./nodes/NumberNode";
 
 type GenericNode = GraphNode<GraphNodeType>;
 
@@ -83,69 +77,9 @@ export class ExecutionGraph {
         this.nodes.set(node.id, node);
         break;
       }
-      case "number": {
-        const { name, retry, onComplete } = config;
-        const node = new NumberNode(name, retry, onComplete);
-        if (this.root === "") this.root = node.id;
-        this.nodes.set(node.id, node);
-        break;
-      }
-      case "llm": {
-        const {
-          name,
-          retry,
-          stream,
-          onComplete,
-          model,
-          system,
-          template,
-          format,
-        } = config;
-        const node = new LLMNode(
-          name,
-          stream ?? false,
-          model,
-          system,
-          template,
-          format,
-          retry,
-          onComplete
-        );
-        if (this.root === "") this.root = node.id;
-        this.nodes.set(node.id, node);
-        break;
-      }
       case "output": {
         const { name, retry, onComplete } = config;
         const node = new OutputNode(name, retry, onComplete);
-        if (this.root === "") this.root = node.id;
-        this.nodes.set(node.id, node);
-        break;
-      }
-      case "if": {
-        const { name, retry, onComplete, statement } = config;
-        const node = new IfNode(name, statement, retry, onComplete);
-        if (this.root === "") this.root = node.id;
-        this.nodes.set(node.id, node);
-        break;
-      }
-      case "tool-call": {
-        const { name, retry, tools, onComplete, model } = config;
-        const node = new ToolCallNode(name, tools, model, retry, onComplete);
-        this.nodes.set(node.id, node);
-        break;
-      }
-
-      case "tool": {
-        const { name, retry, impl, onComplete } = config;
-        const node = new ToolNode(name, impl, retry, onComplete);
-        this.nodes.set(node.id, node);
-        break;
-      }
-
-      case "variable": {
-        const { name, retry, onComplete } = config;
-        const node = new VariableNode(name, retry, onComplete);
         if (this.root === "") this.root = node.id;
         this.nodes.set(node.id, node);
         break;
@@ -306,11 +240,7 @@ export class ExecutionGraph {
     return this._definitions;
   }
 
-  // Specifically processes a prompt, so it is designed around that
-  // @TODO: Later on create a generic execute, and use graph global
-  // variables to expose graph-level inputs/outputs
-  // (public vs private variables in the graphCTX)
-  public async *process(prompt: string): AsyncIterable<ExecutionUpdate> {
+  public async *execute(): AsyncIterable<ExecutionUpdate> {
     this.nodeExecutionContexts.clear();
     const graphCtx: GraphContext = {
       chatHistory: [
@@ -341,22 +271,9 @@ export class ExecutionGraph {
     }
 
     const queue: Array<[GenericNode, NodeContext]> = [];
-    this.addNode({
-      type: "string",
-      name: "graph-entry",
-    });
-    const node = this.nodes.get("graph-entry")! as StringNode;
-    node.string = prompt;
-    this.nodes.set(node.id, node);
-    this.addEdge({
-      fromNode: node.id,
-      toNode: rootNode.id,
-      fromPort: "string",
-      toPort: "input", // hard-coded for now, assumes a PromptNode
-    });
+    const node = this.nodes.get(this.root)!;
     const ctx = new NodeContext(graphCtx, node, {}, {});
     this.nodeExecutionContexts.set(node.id, ctx);
-
     queue.push([node, ctx]);
 
     while (queue.length > 0) {
