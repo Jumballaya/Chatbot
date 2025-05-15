@@ -33,5 +33,13 @@ export function addNodeFromReactFlow(
       });
       break;
     }
+    case "llm": {
+      graph.addNode({
+        name: node.id,
+        type: "llm",
+        model: node.data.targets!.model.value,
+      });
+      break;
+    }
   }
 }

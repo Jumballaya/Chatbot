@@ -5,7 +5,8 @@ import {
   NodeStatus,
   RetryConfig,
   OnCompleteCB,
-  Port,
+  OutputPort,
+  InputPort,
 } from "../types";
 
 export class OutputNode extends GraphNode<"output"> {
@@ -17,15 +18,15 @@ export class OutputNode extends GraphNode<"output"> {
     super(name, "output", retryConfig, onComplete);
   }
 
-  public inputs(): Record<string, Port<"string">> {
+  public inputs(): Record<string, InputPort> {
     return {
-      input: { type: "string", connected: false, value: "" },
+      input: { type: "string", default: "" },
     };
   }
 
-  public outputs(): Record<string, Port<"string">> {
+  public outputs(): Record<string, OutputPort> {
     return {
-      output: { type: "string", connected: false, value: "" },
+      output: { type: "string" },
     };
   }
 
@@ -36,7 +37,7 @@ export class OutputNode extends GraphNode<"output"> {
     context.setOutput("output", text);
     yield {
       status: NodeStatus.Completed,
-      output: { text },
+      output: { text: text ?? "" },
       final: true,
       nodeId: this.id,
     };

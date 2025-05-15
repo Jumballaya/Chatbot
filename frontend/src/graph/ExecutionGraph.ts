@@ -16,6 +16,7 @@ import {
 } from "./types";
 import { validateGraph } from "./validators";
 import { GraphVariables } from "./GraphVariables";
+import { LLMNode } from "./nodes/LLMNode";
 
 type GenericNode = GraphNode<GraphNodeType>;
 
@@ -76,6 +77,21 @@ export class ExecutionGraph {
         this.nodes.set(node.id, node);
         break;
       }
+      case "llm": {
+        const { name, retry, onComplete, model, stream, system } = config;
+        const node = new LLMNode(
+          name,
+          stream ?? false,
+          model,
+          system,
+          undefined,
+          undefined,
+          retry,
+          onComplete
+        );
+        this.nodes.set(node.id, node);
+        break;
+      }
     }
   }
 
@@ -96,7 +112,10 @@ export class ExecutionGraph {
   public addEdge(edge: GraphEdge): void {
     const fromNode = this.nodes.get(edge.fromNode);
     const toNode = this.nodes.get(edge.toNode);
-    if (!fromNode || !toNode) throw new Error("Invalid node reference");
+    if (!fromNode || !toNode) {
+      console.log(edge, fromNode, toNode);
+      throw new Error("Invalid node reference");
+    }
 
     const fromPorts = fromNode.outputs();
     const toPorts = toNode.inputs();
@@ -248,6 +267,12 @@ export class ExecutionGraph {
 
       if (!failed) next.onComplete(ctx.getOutputs(), ctx);
     }
+  }
+
+  public clear() {
+    this.nodes.clear();
+    this.edges.length = 0;
+    this.root = "";
   }
 
   // @TODO: Make sure this will resolve inputs correctly

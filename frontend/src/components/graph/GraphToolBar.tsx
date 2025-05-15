@@ -67,6 +67,16 @@ export default function GraphToolBar() {
             }}
           />
         </li>
+        <li className="mr-2">
+          <Button
+            label="LLM"
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              createNode("llm");
+            }}
+          />
+        </li>
       </ul>
     </nav>
   );

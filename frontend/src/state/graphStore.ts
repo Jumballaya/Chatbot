@@ -291,7 +291,8 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
 
   compileGraph(id) {
     const { nodes, edges, graphs } = get();
-    const graph = graphs[id].graph ?? new ExecutionGraph();
+    const graph = graphs[id].graph;
+    graph.clear();
 
     for (const node of nodes) {
       addNodeFromReactFlow(node, graph);

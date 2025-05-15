@@ -53,61 +53,75 @@ export class LLMNode extends GraphNode<"llm"> {
 
   public inputs(): Record<string, InputPort> {
     return {
-      prompt: { type: "string", required: true },
+      prompt: {
+        type: "string",
+        required: true,
+      },
+      model: {
+        type: "string",
+      },
+      system: {
+        type: "string",
+      },
+      stream: {
+        type: "boolean",
+      },
     };
   }
 
   public outputs(): Record<string, OutputPort> {
     return {
-      output: { type: "string" },
+      llm_output: { type: "string" },
     };
   }
 
   public async *execute(
     context: NodeContext
-  ): AsyncIterable<ExecutionUpdate<{ output: string }>> {
+  ): AsyncIterable<ExecutionUpdate<{ llm_output: string }>> {
     const prompt = this._template
-      ? this._template(context.getInput<string>("prompt"))
+      ? this._template(context.getInput<string>("prompt")!)
       : context.getInput<string>("prompt");
+    const model = this._model ? this._model : context.getInput<string>("model");
 
     const history = [
       ...(this._system
         ? [{ role: "system" as const, content: this._system }]
         : []),
       ...context.graph.chatHistory,
-      { role: "user" as const, content: prompt },
+      { role: "user" as const, content: prompt ?? "" },
     ];
     try {
       const response = this._stream
-        ? yield* this.streamChat(history)
-        : yield* this.noStreamChat(history);
+        ? yield* this.streamChat(model ?? "gemma3:4b", history)
+        : yield* this.noStreamChat(model ?? "gemma3:4b", history);
 
-      context.setOutput("output", response);
+      context.setOutput("llm_output", response);
       context.graph.chatHistory.push({
         role: "assistant",
         content: response,
       });
     } catch (e) {
       yield {
-        nodeId: this.id,
         status: NodeStatus.Failed,
+        nodeId: this.id,
         error: e instanceof Error ? e.message : `${e}`,
       };
     }
   }
 
   public onComplete(
-    result: { output: string },
+    result: { llm_output: string },
     context: NodeContext
   ): void | Promise<void> {
     this.onCompleteCB?.(result, context);
   }
 
   private async *streamChat(
+    model: string,
     history: ChatEntry[]
-  ): AsyncGenerator<ExecutionUpdate<{ output: string }>, string, void> {
+  ): AsyncGenerator<ExecutionUpdate<{ llm_output: string }>, string, void> {
     const res = await ollama.chat({
-      model: this._model,
+      model,
       stream: true,
       messages: history,
       ...(this._format ? { format: this._format } : {}),
@@ -117,16 +131,16 @@ export class LLMNode extends GraphNode<"llm"> {
     for await (const r of res) {
       full += r.message.content;
       yield {
-        nodeId: this.id,
         status: NodeStatus.InProgress,
-        output: { output: r.message.content },
+        nodeId: this.id,
+        output: { llm_output: r.message.content },
         final: false,
         partial: true,
       };
     }
     yield {
       status: NodeStatus.Completed,
-      output: { output: full },
+      output: { llm_output: full },
       final: true,
       nodeId: this.id,
     };
@@ -135,17 +149,18 @@ export class LLMNode extends GraphNode<"llm"> {
   }
 
   private async *noStreamChat(
+    model: string,
     history: ChatEntry[]
-  ): AsyncGenerator<ExecutionUpdate<{ output: string }>, string, void> {
+  ): AsyncGenerator<ExecutionUpdate<{ llm_output: string }>, string, void> {
     const res = await ollama.chat({
-      model: "qwen3",
+      model,
       stream: false,
       messages: history,
       ...(this._format ? { format: this._format } : {}),
     });
     yield {
       status: NodeStatus.Completed,
-      output: { output: res.message.content },
+      output: { llm_output: res.message.content },
       final: true,
       nodeId: this.id,
     };
