@@ -76,9 +76,13 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
       compiled: false,
       graph: (() => {
         const graph = new ExecutionGraph();
-        graph.addVariable("initial_prompt", "string", "Why is the sky blue?");
-        graph.addVariable("llm_model", "string", "gemma3:4b");
-        graph.addVariable("test123", "number", 10);
+        graph.globals.addVariable(
+          "initial_prompt",
+          "string",
+          "Why is the sky blue?"
+        );
+        graph.globals.addVariable("llm_model", "string", "gemma3:4b");
+        graph.globals.addVariable("test123", "number", 10);
         return graph;
       })(),
     },
@@ -331,7 +335,9 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
   getVariableList() {
     const state = get();
     return Object.values(
-      state.graphs[state.activeGraphId ?? "default"].graph.getVariables()
+      state.graphs[
+        state.activeGraphId ?? "default"
+      ].graph.globals.getVariables()
     );
   },
 }));

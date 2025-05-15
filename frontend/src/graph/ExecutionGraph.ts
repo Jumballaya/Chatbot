@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import { GraphNode } from "./GraphNode";
 import { NodeContext } from "./NodeContext";
 import { OutputNode } from "./nodes/OutputNode";
@@ -13,21 +12,40 @@ import {
   NodeStatus,
   NodeConfig,
   GraphContext,
-  VariableDef,
-  VariableValue,
-  VariableType,
   Data,
 } from "./types";
 import { validateGraph } from "./validators";
+import { GraphVariables } from "./GraphVariables";
 
 type GenericNode = GraphNode<GraphNodeType>;
 
-export class ExecutionGraph {
-  private _definitions: Record<string, VariableDef> = {};
-  private _variables: Record<string, VariableValue> = {};
+//
+//  Get the variable stuff out and into a graph variable manager
+//  class. It will be expanded on later when I do external variables
+//  and imported/exported variables (to turn the whole graph into
+//  its own node for another graph).
+//
+//  Focus on rebuilding the graph around the react-flow data.
+//  Rewrite the data that the nodes have and mark the inputs/outputs
+//  type, values, names and if they are connect or not. No required
+//  ports for now. Make the ports mirror react-flow.
+//
+//  Simplify the class API and try to meld types where possible. Try
+//  to reduce the types used and reduce the usage of the any type
+//
+//  Figure out a solution to running the graph, start at terminal nodes
+//  like the output node and work backwards? Start at input nodes like
+//  literals and variables and work forward? If the second then I will
+//  need to make a robust lifecycle where the graph waits for ports to
+//  be ready before moving on with any ports that require their output
+//  and only then continue on. That means I can work on parts of the
+//  graph as they are ready, and in order. Keeping the DAG structure
+//  while eventually opening the door for multithreaded.
+//
 
+export class ExecutionGraph {
+  public globals = new GraphVariables();
   private nodeExecutionContexts = new Map<NodeId, NodeContext>();
-  public readonly variables: Record<string, VariableValue>;
 
   public nodes: Map<NodeId, GenericNode> = new Map();
   public edges: GraphEdge[] = [];
@@ -36,37 +54,12 @@ export class ExecutionGraph {
   // the left-most node (the highest parent) or come up
   // with a permanent root node and end node that come with all graphs?
 
-  constructor() {
-    this.variables = new Proxy(this._variables, {
-      get: (target, key: string) => target[key],
-      set: (target, key: string, value) => {
-        const def = this._definitions[key];
-        if (!def) throw new Error(`Variable '${key}' not defined`);
-        if (typeof value !== def.type) {
-          throw new TypeError(`Expected '${key}' to be type ${def.type}`);
-        }
-        target[key] = value;
-        return true;
-      },
-    });
-  }
-
-  public setRoot(id: NodeId) {
-    if (this.nodes.has(id)) {
-      this.root = id;
-    }
-  }
-
-  public getRoot() {
-    return this.nodes.get(this.root);
-  }
-
+  // currently assumes you start with a string node -> prompt -> llm -> output
   public addNode(config: NodeConfig): void {
     switch (config.type) {
       case "prompt": {
         const { name, retry, onComplete } = config;
         const node = new PromptNode(name, retry, onComplete);
-        if (this.root === "") this.root = node.id;
         this.nodes.set(node.id, node);
         break;
       }
@@ -80,7 +73,6 @@ export class ExecutionGraph {
       case "output": {
         const { name, retry, onComplete } = config;
         const node = new OutputNode(name, retry, onComplete);
-        if (this.root === "") this.root = node.id;
         this.nodes.set(node.id, node);
         break;
       }
@@ -98,6 +90,9 @@ export class ExecutionGraph {
     });
   }
 
+  // @TODO: Make sure we set the connected value on the port when
+  //        adding/removing edges.
+  //
   public addEdge(edge: GraphEdge): void {
     const fromNode = this.nodes.get(edge.fromNode);
     const toNode = this.nodes.get(edge.toNode);
@@ -146,6 +141,9 @@ export class ExecutionGraph {
     this.edges.push(edge);
   }
 
+  // @TODO: Make sure we set the connected value on the port when
+  //        adding/removing edges.
+  //
   public removeEdge(edge: GraphEdge) {
     this.edges = this.edges.filter(
       (e) =>
@@ -158,95 +156,13 @@ export class ExecutionGraph {
     );
   }
 
-  getEdgesTo(nodeId: NodeId): GraphEdge[] {
-    return this.edges.filter((e) => e.toNode === nodeId);
-  }
-
-  getEdgesFrom(nodeId: NodeId): GraphEdge[] {
-    return this.edges.filter((e) => e.fromNode === nodeId);
-  }
-
-  getEdgeFeedingPort(nodeId: NodeId, port: string): GraphEdge | undefined {
-    return this.edges.find((e) => e.toNode === nodeId && e.toPort === port);
-  }
-
-  public addVariable(
-    name: string,
-    type: VariableType,
-    initial?: VariableValue
-  ) {
-    if (name in this._definitions) {
-      throw new Error(`Variable '${name}' already exists`);
-    }
-    const defaultValue: VariableValue =
-      initial ??
-      (type === "number"
-        ? 0
-        : type === "string"
-        ? ""
-        : type === "boolean"
-        ? false
-        : "");
-
-    const id = nanoid(8);
-    this._definitions[id] = { id, name, type, value: initial ?? defaultValue };
-    this._variables[name] = defaultValue;
-    return id;
-  }
-
-  public updateVariable(
-    id: string,
-    variable: Partial<Omit<VariableDef, "id">>
-  ) {
-    const newName = variable.name;
-    if (newName) {
-      const exists = Object.values(this._definitions).some(
-        (d) => d.id !== id && d.name === newName
-      );
-      if (exists) return;
-    }
-    if (!(id in this._definitions)) return;
-
-    this._definitions[id] = {
-      ...this._definitions[id],
-      ...variable,
-    };
-  }
-
-  public getVariable<T extends VariableValue>(name: string): T | undefined {
-    const found = this._definitions[name];
-    if (found) return found.value as T;
-  }
-
-  public getVariableDef(name: string): VariableDef | undefined {
-    const found = this._definitions[name];
-    if (found) return found;
-  }
-
-  public hasVariableId(id: string) {
-    return id in this._definitions;
-  }
-
-  public removeVariable(name: string) {
-    delete this._definitions[name];
-    delete this._variables[name];
-  }
-
-  public setVariable(name: keyof typeof this._variables, value: VariableValue) {
-    this.variables[name] = value;
-  }
-
-  public getVariables() {
-    return this._definitions;
-  }
-
   public async *execute(): AsyncIterable<ExecutionUpdate> {
     this.nodeExecutionContexts.clear();
     const graphCtx: GraphContext = {
       chatHistory: [
         { role: "system", content: "You are a helpful assistant." },
       ],
-      global: this.variables,
+      global: this.globals.variables,
     };
 
     try {
@@ -334,6 +250,7 @@ export class ExecutionGraph {
     }
   }
 
+  // @TODO: Make sure this will resolve inputs correctly
   private resolveInputsForNode(node: GenericNode): Data {
     const inputs: Data = {};
     const inputPorts = node.inputs();

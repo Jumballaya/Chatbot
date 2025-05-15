@@ -8,29 +8,29 @@ const styles = {
 };
 
 const selector = (s: GraphState) => ({
-  graph: s.getActiveGraph(),
+  globals: s.getActiveGraph()?.globals,
 });
 
 export default function GlobalVariableEditor(props: { visible?: boolean }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { graph } = useGraphStore(selector);
+  const { globals } = useGraphStore(selector);
 
   useVariableFolder(ref, {
     title: "Global Variables",
-    variables: graph?.getVariables() ?? {},
+    variables: globals?.getVariables() ?? {},
     onUpdate: (v) => {
-      if (graph?.hasVariableId(v.id)) {
-        graph.updateVariable(v.id, {
+      if (globals?.hasVariableId(v.id)) {
+        globals.updateVariable(v.id, {
           name: v.name,
           type: v.type,
           value: v.value,
         });
         return;
       }
-      graph?.addVariable(v.name, v.type, v.value);
+      globals?.addVariable(v.name, v.type, v.value);
     },
     onRemove: (key) => {
-      graph?.removeVariable(key);
+      globals?.removeVariable(key);
     },
   });
 

@@ -3,8 +3,7 @@ import {
   NodeStatus,
   RetryConfig,
   OnCompleteCB,
-  InputPort,
-  OutputPort,
+  Port,
 } from "../types";
 import { GraphNode } from "../GraphNode";
 import { NodeContext } from "../NodeContext";
@@ -28,14 +27,16 @@ export class StringNode extends GraphNode<"string"> {
     return this._string;
   }
 
-  public inputs(): Record<string, InputPort> {
+  public inputs(): Record<string, Port<never>> {
     return {};
   }
 
-  public outputs(): Record<string, OutputPort> {
+  public outputs(): Record<string, Port<"string">> {
     return {
       string: {
+        connected: false,
         type: "string",
+        value: "",
       },
     };
   }

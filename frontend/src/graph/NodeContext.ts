@@ -1,5 +1,5 @@
 import { GraphNode } from "./GraphNode";
-import { Data, GraphContext, GraphNodeType, NodeId } from "./types";
+import { Data, GraphContext, GraphNodeType } from "./types";
 
 export class NodeContext {
   constructor(
@@ -31,13 +31,13 @@ export class NodeContext {
     );
   }
 
-  getInput<T>(key: string): T {
+  getInput<T>(key: string): T | undefined {
     const schema = this.node.inputs()[key as string];
     if (this.runtimeInputs[key] !== undefined) return this.runtimeInputs[key];
     if (schema?.default !== undefined) return schema.default as T;
     if (schema?.required)
       throw new Error(`Missing required input: ${String(key)}`);
-    return undefined as any;
+    return undefined;
   }
 
   setOutput(key: string, value: unknown): void {

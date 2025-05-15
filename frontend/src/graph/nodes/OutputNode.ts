@@ -5,8 +5,7 @@ import {
   NodeStatus,
   RetryConfig,
   OnCompleteCB,
-  InputPort,
-  OutputPort,
+  Port,
 } from "../types";
 
 export class OutputNode extends GraphNode<"output"> {
@@ -18,15 +17,15 @@ export class OutputNode extends GraphNode<"output"> {
     super(name, "output", retryConfig, onComplete);
   }
 
-  public inputs(): Record<string, InputPort> {
+  public inputs(): Record<string, Port<"string">> {
     return {
-      input: { type: "string", required: true },
+      input: { type: "string", connected: false, value: "" },
     };
   }
 
-  public outputs(): Record<string, OutputPort> {
+  public outputs(): Record<string, Port<"string">> {
     return {
-      output: { type: "string" },
+      output: { type: "string", connected: false, value: "" },
     };
   }
 

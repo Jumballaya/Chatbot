@@ -3,8 +3,7 @@ import {
   NodeStatus,
   RetryConfig,
   OnCompleteCB,
-  InputPort,
-  OutputPort,
+  Port,
 } from "../types";
 import { GraphNode } from "../GraphNode";
 import { NodeContext } from "../NodeContext";
@@ -18,19 +17,22 @@ export class PromptNode extends GraphNode<"prompt"> {
     super(name, "prompt", retryConfig, onComplete);
   }
 
-  public inputs(): Record<string, InputPort> {
+  public inputs(): Record<string, Port<"string">> {
     return {
       input: {
         type: "string",
-        required: true,
+        value: "",
+        connected: false,
       },
     };
   }
 
-  public outputs(): Record<string, OutputPort> {
+  public outputs(): Record<string, Port<"string">> {
     return {
       prompt: {
         type: "string",
+        value: "",
+        connected: false,
       },
     };
   }

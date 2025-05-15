@@ -39,6 +39,18 @@ export class LLMNode extends GraphNode<"llm"> {
     if (format) this._format = format;
   }
 
+  public set stream(s: boolean) {
+    this._stream = s;
+  }
+
+  public set model(m: string) {
+    this._model = m;
+  }
+
+  public set system(s: string) {
+    this._system = s;
+  }
+
   public inputs(): Record<string, InputPort> {
     return {
       prompt: { type: "string", required: true },
