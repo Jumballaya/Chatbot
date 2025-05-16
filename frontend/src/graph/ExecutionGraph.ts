@@ -22,30 +22,6 @@ import { BooleanNode } from "./nodes/BooleanNode";
 
 type GenericNode = GraphNode<GraphNodeType>;
 
-//
-//  Get the variable stuff out and into a graph variable manager
-//  class. It will be expanded on later when I do external variables
-//  and imported/exported variables (to turn the whole graph into
-//  its own node for another graph).
-//
-//  Focus on rebuilding the graph around the react-flow data.
-//  Rewrite the data that the nodes have and mark the inputs/outputs
-//  type, values, names and if they are connect or not. No required
-//  ports for now. Make the ports mirror react-flow.
-//
-//  Simplify the class API and try to meld types where possible. Try
-//  to reduce the types used and reduce the usage of the any type
-//
-//  Figure out a solution to running the graph, start at terminal nodes
-//  like the output node and work backwards? Start at input nodes like
-//  literals and variables and work forward? If the second then I will
-//  need to make a robust lifecycle where the graph waits for ports to
-//  be ready before moving on with any ports that require their output
-//  and only then continue on. That means I can work on parts of the
-//  graph as they are ready, and in order. Keeping the DAG structure
-//  while eventually opening the door for multithreaded.
-//
-
 export class ExecutionGraph {
   public globals = new GraphVariables();
   private nodeExecutionContexts = new Map<NodeId, NodeContext>();
@@ -69,21 +45,18 @@ export class ExecutionGraph {
       case "string": {
         const { name, retry, onComplete } = config;
         const node = new StringNode(name, retry, onComplete);
-        if (this.root === "") this.root = node.id;
         this.nodes.set(node.id, node);
         break;
       }
       case "number": {
         const { name, retry, onComplete } = config;
         const node = new NumberNode(name, retry, onComplete);
-        if (this.root === "") this.root = node.id;
         this.nodes.set(node.id, node);
         break;
       }
       case "boolean": {
         const { name, retry, onComplete } = config;
         const node = new BooleanNode(name, retry, onComplete);
-        if (this.root === "") this.root = node.id;
         this.nodes.set(node.id, node);
         break;
       }
@@ -91,6 +64,7 @@ export class ExecutionGraph {
         const { name, retry, onComplete } = config;
         const node = new OutputNode(name, retry, onComplete);
         this.nodes.set(node.id, node);
+        if (this.root === "") this.root = node.id;
         break;
       }
       case "llm": {
@@ -122,9 +96,6 @@ export class ExecutionGraph {
     });
   }
 
-  // @TODO: Make sure we set the connected value on the port when
-  //        adding/removing edges.
-  //
   public addEdge(edge: GraphEdge): void {
     const fromNode = this.nodes.get(edge.fromNode);
     const toNode = this.nodes.get(edge.toNode);
@@ -175,9 +146,6 @@ export class ExecutionGraph {
     this.edges.push(edge);
   }
 
-  // @TODO: Make sure we set the connected value on the port when
-  //        adding/removing edges.
-  //
   public removeEdge(edge: GraphEdge) {
     this.edges = this.edges.filter(
       (e) =>
@@ -209,28 +177,30 @@ export class ExecutionGraph {
       };
       return;
     }
+    const ctx = new NodeContext(graphCtx, {} as GenericNode, {}, {});
+    const queue: Array<[GenericNode, NodeContext]> = this.getSourceNodes().map(
+      (n) => {
+        this.nodeExecutionContexts.set(n.id, ctx);
+        return [n, ctx];
+      }
+    );
 
-    const rootNode = this.nodes.get(this.root);
-    if (!rootNode) {
-      yield {
-        nodeId: "",
-        status: NodeStatus.Failed,
-        error: "No root node present",
-      };
-      return;
-    }
-
-    const queue: Array<[GenericNode, NodeContext]> = [];
-    const node = this.nodes.get(this.root)!;
-    const ctx = new NodeContext(graphCtx, node, {}, {});
-    this.nodeExecutionContexts.set(node.id, ctx);
-    queue.push([node, ctx]);
+    const finished: NodeId[] = [];
 
     while (queue.length > 0) {
       const item = queue.pop();
       if (!item) break;
+      console.log(`Starting new Node: ${item[0].id} : ${item[0].type}`);
       const [next, prevCtx] = item;
+      if (finished.includes(next.id)) {
+        continue;
+      }
+
       const inputs = this.resolveInputsForNode(next);
+      if (!inputs) {
+        queue.unshift([next, prevCtx]);
+        continue;
+      }
       const outputs = this.createDefaultOutputsForNode(next);
       const ctx = NodeContext.CreateNext(prevCtx, next, inputs, outputs);
 
@@ -269,6 +239,9 @@ export class ExecutionGraph {
       this.nodeExecutionContexts.set(next.id, ctx);
 
       for (const node of filtered) {
+        if (finished.includes(node.id)) {
+          continue;
+        }
         const inputs = this.resolveInputsForNode(node);
         const outputs = this.createDefaultOutputsForNode(node);
         const ctx = NodeContext.CreateNext(
@@ -280,6 +253,7 @@ export class ExecutionGraph {
         queue.unshift([node, ctx]);
       }
 
+      finished.push(next.id);
       if (!failed) next.onComplete(ctx.getOutputs(), ctx);
     }
   }
@@ -291,6 +265,8 @@ export class ExecutionGraph {
   }
 
   // @TODO: Make sure this will resolve inputs correctly
+  //        If we have missing context, we need to queue
+  //        up missing nodes
   private resolveInputsForNode(node: GenericNode): Data {
     const inputs: Data = {};
     const inputPorts = node.inputs();
@@ -314,7 +290,8 @@ export class ExecutionGraph {
 
       const fromCtx = this.nodeExecutionContexts.get(edge.fromNode);
       if (!fromCtx) {
-        throw new Error(`Missing context for upstream node ${edge.fromNode}`);
+        // Missing CTX --> this node is ready yet
+        break;
       }
       inputs[key] = fromCtx.getOutput(edge.fromPort);
     }
@@ -361,5 +338,18 @@ export class ExecutionGraph {
       if (e.fromNode === from && e.toNode === to) return e.condition;
     }
     return undefined;
+  }
+
+  private getSourceNodes(): Array<GenericNode> {
+    const nodes: GenericNode[] = [];
+
+    for (const [id, node] of this.nodes) {
+      const connectedTo = this.edges.some((e) => e.toNode === id);
+      if (!connectedTo) {
+        nodes.push(node);
+      }
+    }
+
+    return nodes;
   }
 }

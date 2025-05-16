@@ -74,11 +74,12 @@ export interface GraphEdge {
 }
 
 export enum NodeStatus {
+  StandBy = "standby",
   Pending = "pending",
+  Ready = "ready",
   InProgress = "in_progress",
   Completed = "completed",
   Failed = "failed",
-  Skipped = "skipped",
 }
 
 export interface RetryConfig {
