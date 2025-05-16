@@ -65,6 +65,7 @@ export function addNodeFromReactFlow(
         model: node.data.targets!.model.value,
         system: node.data.targets!.system.value,
         stream: node.data.targets!.stream.value,
+        history: node.data.targets!.history.value,
       });
       break;
     }

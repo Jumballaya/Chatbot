@@ -28,10 +28,6 @@ export class ExecutionGraph {
 
   public nodes: Map<NodeId, GenericNode> = new Map();
   public edges: GraphEdge[] = [];
-  private root: NodeId = "";
-  //  @TODO: maybe re-write root system this so we find
-  // the left-most node (the highest parent) or come up
-  // with a permanent root node and end node that come with all graphs?
 
   // currently assumes you start with a string node -> prompt -> llm -> output
   public addNode(config: NodeConfig): void {
@@ -64,16 +60,17 @@ export class ExecutionGraph {
         const { name, retry, onComplete } = config;
         const node = new OutputNode(name, retry, onComplete);
         this.nodes.set(node.id, node);
-        if (this.root === "") this.root = node.id;
         break;
       }
       case "llm": {
-        const { name, retry, onComplete, model, stream, system } = config;
+        const { name, retry, onComplete, model, stream, history, system } =
+          config;
         const node = new LLMNode(
           name,
           stream ?? false,
           model,
           system,
+          history,
           undefined,
           undefined,
           retry,
@@ -88,9 +85,6 @@ export class ExecutionGraph {
   public removeNode(id: string) {
     this.nodeExecutionContexts.delete(id);
     this.nodes.delete(id);
-    if (this.root === id) {
-      this.root = "";
-    }
     this.edges = this.edges.filter((e) => {
       return e.fromNode !== id && e.toNode !== id;
     });
@@ -158,6 +152,19 @@ export class ExecutionGraph {
     );
   }
 
+  //
+  //
+  //    Idea --> Start at terminal nodes (OutputNode right now)
+  //             push every terminal node to an array and push
+  //             that array onto a stack. Then push each direct
+  //             child of the terminal nodes into an array and
+  //             push that onto the stack, etc. etc. until you
+  //             have a stack with a list of the deepest root
+  //             nodes on top. Pop off the stack and process
+  //             each node in the array. Continue until the
+  //             stack is empty or we hit a fatal error.
+  //
+  //
   public async *execute(): AsyncIterable<ExecutionUpdate> {
     this.nodeExecutionContexts.clear();
     const graphCtx: GraphContext = {
@@ -195,12 +202,12 @@ export class ExecutionGraph {
       if (finished.includes(next.id)) {
         continue;
       }
-
       const inputs = this.resolveInputsForNode(next);
       if (!inputs) {
         queue.unshift([next, prevCtx]);
         continue;
       }
+
       const outputs = this.createDefaultOutputsForNode(next);
       const ctx = NodeContext.CreateNext(prevCtx, next, inputs, outputs);
 
@@ -237,23 +244,22 @@ export class ExecutionGraph {
       }
 
       this.nodeExecutionContexts.set(next.id, ctx);
+      finished.push(next.id);
 
       for (const node of filtered) {
         if (finished.includes(node.id)) {
           continue;
         }
         const inputs = this.resolveInputsForNode(node);
+        if (!inputs) {
+          queue.unshift([node, prevCtx]);
+          continue;
+        }
         const outputs = this.createDefaultOutputsForNode(node);
-        const ctx = NodeContext.CreateNext(
-          new NodeContext(graphCtx, node, {}, {}),
-          node,
-          inputs,
-          outputs
-        );
+        const ctx = NodeContext.CreateNext(prevCtx, node, inputs, outputs);
         queue.unshift([node, ctx]);
       }
 
-      finished.push(next.id);
       if (!failed) next.onComplete(ctx.getOutputs(), ctx);
     }
   }
@@ -261,13 +267,9 @@ export class ExecutionGraph {
   public clear() {
     this.nodes.clear();
     this.edges.length = 0;
-    this.root = "";
   }
 
-  // @TODO: Make sure this will resolve inputs correctly
-  //        If we have missing context, we need to queue
-  //        up missing nodes
-  private resolveInputsForNode(node: GenericNode): Data {
+  private resolveInputsForNode(node: GenericNode): Data | null {
     const inputs: Data = {};
     const inputPorts = node.inputs();
 
@@ -291,7 +293,7 @@ export class ExecutionGraph {
       const fromCtx = this.nodeExecutionContexts.get(edge.fromNode);
       if (!fromCtx) {
         // Missing CTX --> this node is ready yet
-        break;
+        return null;
       }
       inputs[key] = fromCtx.getOutput(edge.fromPort);
     }

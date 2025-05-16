@@ -27,6 +27,8 @@ const selector = (id: string) => (store: GraphState) => ({
     store.setNodeValue(id, "system", "targets", { value: system }),
   setStream: (stream: boolean) =>
     store.setNodeValue(id, "stream", "targets", { value: stream }),
+  setHistory: (history: boolean) =>
+    store.setNodeValue(id, "history", "targets", { value: history }),
 
   promptValue: store.getNodeValue(id, "prompt", "targets")?.value ?? "",
   promptConnected:
@@ -43,6 +45,10 @@ const selector = (id: string) => (store: GraphState) => ({
   streamValue: store.getNodeValue(id, "stream", "targets")?.value ?? false,
   streamConnected:
     store.getNodeValue(id, "stream", "targets")?.connected ?? false,
+
+  historyValue: store.getNodeValue(id, "history", "targets")?.value ?? true,
+  historyConnected:
+    store.getNodeValue(id, "history", "targets")?.connected ?? true,
 });
 
 export default function LLMNodeComponent(props: LLMNodeProps) {
@@ -51,6 +57,7 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
     setModel,
     setSystem,
     setStream,
+    setHistory,
     promptValue,
     promptConnected,
     modelValue,
@@ -59,6 +66,8 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
     systemConnected,
     streamValue,
     streamConnected,
+    historyValue,
+    historyConnected,
   } = useGraphStore(selector(props.id), shallow);
 
   return (
@@ -146,6 +155,30 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
             value={streamValue}
             size="sm"
             onChange={(v) => setStream(v)}
+          />
+        )}
+      </NodeRow>
+
+      <NodeRow>
+        <TypedHandle
+          id="stream"
+          type="target"
+          position={Position.Left}
+          dataType="boolean"
+        />
+        {historyConnected ? (
+          <BooleanInput
+            label="stream?"
+            value={historyValue}
+            size="sm"
+            disabled={true}
+          />
+        ) : (
+          <BooleanInput
+            label="history?"
+            value={historyValue}
+            size="sm"
+            onChange={(v) => setHistory(v)}
           />
         )}
       </NodeRow>

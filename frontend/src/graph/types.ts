@@ -141,8 +141,9 @@ type BaseNodeConfig = {
 
 export type LLMNodeConfig = BaseNodeConfig & {
   type: "llm";
-  stream?: boolean;
   model: string;
+  stream?: boolean;
+  history?: boolean;
   system?: string;
   format?: LLMFormat;
   template?: (s: string) => string;

@@ -180,6 +180,11 @@ export function createLLMNode(
           type: "boolean",
           value: false,
         },
+        history: {
+          connected: false,
+          type: "boolean",
+          value: true,
+        },
       },
 
       sources: {

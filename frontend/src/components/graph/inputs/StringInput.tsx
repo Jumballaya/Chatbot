@@ -17,7 +17,7 @@ export default function StringInput(props: StringInputProps) {
         value={props.value}
         onChange={props.onChange}
         disabled={props.disabled ?? false}
-        className="w-full text-xs bg-[#111] border border-[#444] rounded p-1 text-white"
+        className="nodrag w-full text-xs bg-[#111] border border-[#444] rounded p-1 text-white"
         placeholder="Value"
       />
     </>

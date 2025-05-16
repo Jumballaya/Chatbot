@@ -53,6 +53,7 @@ export type LLMNodeProps = {
       model: Port<"string">;
       system: Port<"string">;
       stream: Port<"boolean">;
+      history: Port<"boolean">;
     };
   };
 };

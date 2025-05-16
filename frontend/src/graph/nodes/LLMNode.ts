@@ -16,6 +16,7 @@ const ollama = new Ollama({ host: "http://localhost:11434" });
 
 export class LLMNode extends GraphNode<"llm"> {
   private _stream: boolean;
+  private _history: boolean;
   private _model: string;
   private _system?: string;
   private _template?: (s: string) => string;
@@ -26,6 +27,7 @@ export class LLMNode extends GraphNode<"llm"> {
     stream: boolean,
     model = "qwen3",
     system?: string,
+    history?: boolean,
     template?: (s: string) => string,
     format?: LLMFormat,
     retryConfig: RetryConfig = { policy: "never" },
@@ -37,6 +39,7 @@ export class LLMNode extends GraphNode<"llm"> {
     if (system) this._system = system;
     if (template) this._template = template;
     if (format) this._format = format;
+    this._history = history ?? true;
   }
 
   public set stream(s: boolean) {
@@ -66,6 +69,9 @@ export class LLMNode extends GraphNode<"llm"> {
       stream: {
         type: "boolean",
       },
+      history: {
+        type: "boolean",
+      },
     };
   }
 
@@ -82,24 +88,30 @@ export class LLMNode extends GraphNode<"llm"> {
       ? this._template(context.getInput<string>("prompt")!)
       : context.getInput<string>("prompt");
     const model = this._model ? this._model : context.getInput<string>("model");
+    const system = this._system
+      ? this._system
+      : context.getInput<string>("system");
 
     const history = [
-      ...(this._system
-        ? [{ role: "system" as const, content: this._system }]
-        : []),
-      ...context.graph.chatHistory,
+      ...(system ? [{ role: "system" as const, content: system }] : []),
+      ...(this._history ? context.graph.chatHistory : []),
       { role: "user" as const, content: prompt ?? "" },
     ];
+
+    console.log({ prompt, model, system, history });
+
     try {
       const response = this._stream
         ? yield* this.streamChat(model ?? "gemma3:4b", history)
         : yield* this.noStreamChat(model ?? "gemma3:4b", history);
 
       context.setOutput("llm_output", response);
-      context.graph.chatHistory.push({
-        role: "assistant",
-        content: response,
-      });
+      if (this._history) {
+        context.graph.chatHistory.push({
+          role: "assistant",
+          content: response,
+        });
+      }
     } catch (e) {
       yield {
         status: NodeStatus.Failed,
