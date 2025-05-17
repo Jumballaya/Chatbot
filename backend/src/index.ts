@@ -21,7 +21,7 @@ async function main() {
   }
   await mongo.db.command({ ping: 1 });
 
-  const server = createServer();
+  const server = await createServer(mongo.db);
   server.listen(3000, () => {
     console.log(`Server starting on port 3000`);
   });
