@@ -32,6 +32,21 @@ services:
           devices:
             - capabilities: [ gpu ]
 
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm run dev
+    depends_on:
+      - ollama
+      - image-server
+
   frontend:
     build:
       context: ./frontend
@@ -40,12 +55,13 @@ services:
       - "5173:5173"
     volumes:
       - ./frontend:/app
-      - /app/node_modules # avoids overwriting node_modules
+      - /app/node_modules
     working_dir: /app
     command: npm run dev -- --host
     depends_on:
       - ollama
       - image-server
+      - backend
 
 volumes:
   ollama_data:
