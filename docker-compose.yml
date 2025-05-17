@@ -32,6 +32,18 @@ services:
           devices:
             - capabilities: [ gpu ]
 
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -46,6 +58,7 @@ services:
     depends_on:
       - ollama
       - image-server
+      - mongodb
 
   frontend:
     build:
@@ -60,8 +73,10 @@ services:
     command: npm run dev -- --host
     depends_on:
       - ollama
+      - mongodb
       - image-server
       - backend
 
 volumes:
   ollama_data:
+  mongo_data:

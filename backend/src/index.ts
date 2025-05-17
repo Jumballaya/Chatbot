@@ -1,25 +1,29 @@
 import express, { Router } from "express";
+import { connectToDB } from "./db/connection";
+import { createServer } from "./server";
 
 //
 //    * Chats
-//
+//      - C R U D a chat
 //
 //    * Graphs
-//
+//      - Create Initial Graph
+//      - Compile Graph (POST graph body with globals)
+//      - Delete graph
 //
 //    * Files (TBD)
 //
 
-const server = express();
-const router = Router();
-server.use(router);
+async function main() {
+  const mongo = await connectToDB();
+  if (!mongo) {
+    return;
+  }
+  await mongo.db.command({ ping: 1 });
 
-router.get("/", (req, res) => {
-  res.json({
-    hello: "world",
+  const server = createServer();
+  server.listen(3000, () => {
+    console.log(`Server starting on port 3000`);
   });
-});
-
-server.listen(3000, () => {
-  console.log(`Server starting on port 3000`);
-});
+}
+main();
