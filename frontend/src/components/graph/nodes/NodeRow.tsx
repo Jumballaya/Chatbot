@@ -1,15 +1,11 @@
 import { Position } from "@xyflow/react";
-import BaseNodeComponent from "./nodes/BaseNodeComponent";
-import StringInput from "./inputs/StringInput";
-import { GraphState, useGraphStore } from "../../state/graphStore";
+import StringInput from "../inputs/StringInput";
+import { GraphState, useGraphStore } from "../../../state/graphStore";
 import TypedHandle from "./TypedHandle";
-import { GraphNodeProps } from "./types";
-import NodeRow from "./NodeRow";
-import { IOType, Port } from "../../graph/types";
-import NumberInput from "./inputs/NumberInput";
-import BooleanInput from "./inputs/BooleanInput";
-import InputLabel from "./inputs/InputLabel";
-import { getNodeTitle } from "../../graph/reactNodeFactory";
+import { IOType, Port } from "../../../graph/types";
+import NumberInput from "../inputs/NumberInput";
+import BooleanInput from "../inputs/BooleanInput";
+import InputLabel from "../inputs/InputLabel";
 
 const selector = (id: string) => (store: GraphState) => ({
   getValue: (k: string, d: "sources" | "targets") =>
@@ -73,7 +69,7 @@ type RowProps = {
   attribute: string;
 };
 
-function TargetRow(props: RowProps) {
+export function TargetRow(props: RowProps) {
   const { getValue } = useGraphStore(selector(props.id));
   const { attribute, id } = props;
   const value = getValue(attribute, "targets");
@@ -104,7 +100,7 @@ function TargetRow(props: RowProps) {
   );
 }
 
-function SourceRow(props: RowProps) {
+export function SourceRow(props: RowProps) {
   const { getValue } = useGraphStore(selector(props.id));
   const { attribute } = props;
   const value = getValue(attribute, "sources");
@@ -135,19 +131,21 @@ function SourceRow(props: RowProps) {
   );
 }
 
-export default function GraphNodeComponent(props: GraphNodeProps) {
+type NodeRowProps = {
+  columns?: number;
+  children: React.ReactNode;
+};
+
+export default function NodeRow(props: NodeRowProps) {
   return (
-    <BaseNodeComponent title={getNodeTitle(props.type)}>
-      {Object.keys(props.data.sources ?? {}).map((k) => {
-        return (
-          <SourceRow id={props.id} key={`${props.id}-${k}`} attribute={k} />
-        );
-      })}
-      {Object.keys(props.data.targets ?? {}).map((k) => {
-        return (
-          <TargetRow id={props.id} key={`${props.id}-${k}`} attribute={k} />
-        );
-      })}
-    </BaseNodeComponent>
+    <div
+      className={`relative grid ${
+        props.columns === 1
+          ? "grid-cols-[auto_1fr] "
+          : "grid-cols-[3rem_auto_1fr]"
+      } items-center gap-x-3 px-2 py-1`}
+    >
+      {props.children}
+    </div>
   );
 }

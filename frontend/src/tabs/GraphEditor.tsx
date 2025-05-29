@@ -4,10 +4,8 @@ import "@xyflow/react/dist/style.css";
 import { GraphState, useGraphStore } from "../state/graphStore";
 import { shallow } from "zustand/shallow";
 import { useUIStore } from "../state/uiStore";
-import GlobalVariableNodeComponent from "../components/graph/nodes/GlobalVariableNodeComponent";
-import OutputNodeComponent from "../components/graph/nodes/OutputNodeComponent";
 import GraphToolBar from "../components/graph/GraphToolBar";
-import GraphNodeComponent from "../components/graph/GraphNode";
+import GraphNodeComponent from "../components/graph/nodes/GraphNode";
 
 const graphSelector = (store: GraphState) => ({
   nodes: store.nodes,
@@ -23,9 +21,8 @@ const nodeTypes = {
   string: GraphNodeComponent,
   number: GraphNodeComponent,
   boolean: GraphNodeComponent,
-  variable: GlobalVariableNodeComponent,
   llm: GraphNodeComponent,
-  out: OutputNodeComponent,
+  out: GraphNodeComponent,
 };
 
 export default function GraphEditorTab() {
