@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import { VariableType } from "../../graph/types";
+import { IOType } from "../../graph/types";
 
 const colorMap: Record<string, string> = {
   string: "#6366f1", // indigo
@@ -11,7 +11,7 @@ type TypedHandleProps = {
   type: "source" | "target";
   position: Position;
   id: string;
-  dataType: VariableType;
+  dataType: IOType;
 };
 
 export default function TypedHandle(props: TypedHandleProps) {

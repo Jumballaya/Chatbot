@@ -57,6 +57,7 @@ export function createBooleanNode(
           connected: false,
           type: "boolean",
           value: false,
+          controlled: true,
         },
       },
     },
@@ -77,6 +78,7 @@ export function createStringNode(
           connected: false,
           type: "string",
           value: "",
+          controlled: true,
         },
       },
     },
@@ -97,6 +99,7 @@ export function createNumberNode(
           connected: false,
           type: "number",
           value: 0,
+          controlled: true,
         },
       },
     },
@@ -117,6 +120,7 @@ export function createVariableNode(
           connected: false,
           type: "any",
           value: "",
+          controlled: true,
         },
       },
     },
@@ -217,4 +221,22 @@ export function createOutputNode(
     },
     position,
   };
+}
+
+export function getNodeTitle(type: string): string {
+  switch (type) {
+    case "string":
+      return "String";
+    case "boolean":
+      return "Boolean";
+    case "number":
+      return "Number";
+    case "variable":
+      return "Variable";
+    case "llm":
+      return "LLM Node";
+    case "out":
+      return "Output";
+  }
+  return "";
 }

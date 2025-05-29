@@ -17,19 +17,21 @@ export default function StringNodeComponent(props: StringNodeProps) {
 
   return (
     <BaseNodeComponent title="String">
-      <NodeRow>
-        <StringInput
-          label="String"
-          value={value as string}
-          onChange={(e) => setString(e.target.value)}
-        />
-        <TypedHandle
-          id="string"
-          type="source"
-          position={Position.Right}
-          dataType="string"
-        />
-      </NodeRow>
+      {Object.keys(props.data.sources).map((k) => (
+        <NodeRow key={`${props.id}-${k}`}>
+          <StringInput
+            label={k}
+            value={value as string}
+            onChange={(e) => setString(e.target.value)}
+          />
+          <TypedHandle
+            id="string"
+            type="source"
+            position={Position.Right}
+            dataType="string"
+          />
+        </NodeRow>
+      ))}
     </BaseNodeComponent>
   );
 }

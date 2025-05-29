@@ -6,6 +6,12 @@ export type BaseNodeComponentProps = {
   children: ReactNode;
 };
 
+export type GraphNodeProps = {
+  type: string;
+  id: string;
+  data: GraphData;
+};
+
 export type GraphData = {
   sources?: Record<string, Port<IOType>>;
   targets?: Record<string, Port<IOType>>;

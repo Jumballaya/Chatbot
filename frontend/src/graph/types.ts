@@ -39,6 +39,7 @@ export type Port<T extends IOType> = {
   connected: boolean;
   type: T;
   value: IOTypeMap[T];
+  controlled?: boolean; // can you control the value with an input
 };
 
 export type IOType = "string" | "number" | "boolean" | "any";

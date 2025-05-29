@@ -3,15 +3,11 @@ import { Background, Panel, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { GraphState, useGraphStore } from "../state/graphStore";
 import { shallow } from "zustand/shallow";
-import StringNodeComponent from "../components/graph/nodes/StringNodeComponent";
-import NumberNodeComponent from "../components/graph/nodes/NumberNodeComponent";
 import { useUIStore } from "../state/uiStore";
-import PromptNodeComponent from "../components/graph/nodes/PromptNodeComponent";
 import GlobalVariableNodeComponent from "../components/graph/nodes/GlobalVariableNodeComponent";
-import LLMNodeComponent from "../components/graph/nodes/LLMNodeComponent";
 import OutputNodeComponent from "../components/graph/nodes/OutputNodeComponent";
 import GraphToolBar from "../components/graph/GraphToolBar";
-import BooleanNodeComponent from "../components/graph/nodes/BooleanNodeComponent";
+import GraphNodeComponent from "../components/graph/GraphNode";
 
 const graphSelector = (store: GraphState) => ({
   nodes: store.nodes,
@@ -24,12 +20,11 @@ const graphSelector = (store: GraphState) => ({
 });
 
 const nodeTypes = {
-  string: StringNodeComponent,
-  number: NumberNodeComponent,
-  boolean: BooleanNodeComponent,
-  prompt: PromptNodeComponent,
+  string: GraphNodeComponent,
+  number: GraphNodeComponent,
+  boolean: GraphNodeComponent,
   variable: GlobalVariableNodeComponent,
-  llm: LLMNodeComponent,
+  llm: GraphNodeComponent,
   out: OutputNodeComponent,
 };
 

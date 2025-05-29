@@ -161,14 +161,14 @@ export default function LLMNodeComponent(props: LLMNodeProps) {
 
       <NodeRow>
         <TypedHandle
-          id="stream"
+          id="history"
           type="target"
           position={Position.Left}
           dataType="boolean"
         />
         {historyConnected ? (
           <BooleanInput
-            label="stream?"
+            label="history?"
             value={historyValue}
             size="sm"
             disabled={true}

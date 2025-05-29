@@ -15,7 +15,6 @@ import type {
   GraphNodeType,
   Data,
   PortDirection,
-  IOTypeMap,
   IOType,
   Port,
 } from "../graph/types";
@@ -51,7 +50,7 @@ export interface GraphState {
     id: string,
     port: string,
     direction: PortDirection
-  ): { type: T; connected: boolean; value: IOTypeMap[T] } | undefined;
+  ): Port<T> | undefined;
   removeInvalidEdges: (id: string) => void;
   propagateValueToDownstream: <T extends IOType>(
     sourceId: string,
@@ -158,11 +157,7 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     const data = node.data as Data;
     if (!data[direction]) return;
     const val = data[direction][port];
-    return {
-      type: val.type,
-      value: val.value,
-      connected: val.connected,
-    };
+    return val;
   },
 
   addEdge(data) {
