@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import { VariableValue } from "../graph/types";
+import { IOType, IOTypeMap } from "../graph/types";
 
 export default function usePropagateTargetToSource(
-  targetValue: VariableValue,
-  sourceValue: VariableValue,
-  setOutput: (v: VariableValue) => void
+  targetValue: IOTypeMap[IOType],
+  sourceValue: IOTypeMap[IOType],
+  setOutput: (v: IOTypeMap[IOType]) => void
 ) {
   useEffect(() => {
     if (targetValue !== sourceValue) {

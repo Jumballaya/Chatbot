@@ -1,33 +1,13 @@
-import { NodeContext } from "./NodeContext";
-
 export type NodeId = string;
 export type PortDirection = "targets" | "sources";
-export type ConditionalValue = "true" | "false" | string;
-export type RetryPolicyValue = "never" | "on_failure" | "always";
-export type GraphNodeType =
-  | "prompt"
-  | "llm"
-  | "output"
-  | "if"
-  | "tool-call"
-  | "tool"
-  | "string"
-  | "number"
-  | "boolean"
-  | "variable";
-export type ComparisonOp =
-  | "eq" // number compare
-  | "neq"
-  | "lt"
-  | "gt"
-  | "lte"
-  | "gte"
-  | "contains" // string compare
-  | "startsWith"
-  | "endsWith";
-export type VariableType = "string" | "number" | "boolean";
-export type VariableValue = string | number | boolean;
+export type GraphNodeType = "llm" | "output" | "string" | "number" | "boolean";
 
+export type IOType = "string" | "number" | "boolean";
+export type IOTypeMap = {
+  string: string;
+  number: number;
+  boolean: boolean;
+};
 export interface VariableDef {
   id: string;
   name: string;
@@ -42,102 +22,27 @@ export type Port<T extends IOType> = {
   controlled?: boolean; // can you control the value with an input
 };
 
-export type IOType = "string" | "number" | "boolean" | "any";
-export type IOTypeMap = {
-  string: string;
-  number: number;
-  boolean: boolean;
-  any: any;
-};
-export type InputPort = {
-  type: IOType;
-  required?: boolean;
-  default?: VariableValue;
-};
-export type OutputPort = {
-  type: IOType;
-};
+export type Data = Record<string, unknown>;
 
-export type Data = Record<string, any>;
-
-export type OnCompleteCB<O extends Data = Data> = (
-  result: O,
-  context: NodeContext
-) => void | Promise<void>;
-
-export interface GraphEdge {
-  fromNode: NodeId;
-  fromPort: string;
-  toNode: NodeId;
-  toPort: string;
-  label?: string;
-  condition?: ConditionalValue;
-}
-
-export enum NodeStatus {
-  StandBy = "standby",
-  Pending = "pending",
-  Ready = "ready",
-  InProgress = "in_progress",
-  Completed = "completed",
-  Failed = "failed",
-}
-
-export interface RetryConfig {
-  policy: RetryPolicyValue;
-  max?: number;
-  delayMs?: number;
-}
+export type NodeStatus =
+  | "standby"
+  | "pending"
+  | "ready"
+  | "in_progress"
+  | "completed"
+  | "failed";
 
 export interface ChatEntry {
   role: "user" | "assistant" | "tool" | "system";
   content: string;
 }
 
-export interface GraphContext {
-  chatHistory: ChatEntry[];
-  global: Record<string, VariableValue>;
-}
-
-export type ExecutionUpdate<O extends Data = Data> =
-  | {
-      nodeId: NodeId;
-      status: Exclude<NodeStatus, NodeStatus.Completed>;
-      partial?: true;
-      final?: false;
-      output?: O;
-    }
-  | {
-      nodeId: NodeId;
-      status: NodeStatus.Completed;
-      final: true; // discriminator
-      output: O; // **always present**
-    }
-  | {
-      nodeId: NodeId;
-      status: NodeStatus.Failed;
-      error: string;
-    };
-
 // Complex Inputs/Outputs
-
-export interface IfInputs {
-  selector: string; // dot-path to the output to compare
-  op: ComparisonOp;
-  target: VariableValue; // the target to compare against
-  ignoreCase?: boolean;
-}
-
-export interface IfOutputs {
-  result: boolean;
-}
 
 // Graph Public API
 type BaseNodeConfig = {
   type: GraphNodeType;
   name: string;
-  retry?: RetryConfig;
-  onComplete?: OnCompleteCB;
 };
 
 export type LLMNodeConfig = BaseNodeConfig & {
@@ -148,22 +53,6 @@ export type LLMNodeConfig = BaseNodeConfig & {
   system?: string;
   format?: LLMFormat;
   template?: (s: string) => string;
-};
-
-export type IfNodeConfig = BaseNodeConfig & {
-  type: "if";
-  statement: IfInputs;
-};
-
-export type ToolCallNodeConfig = BaseNodeConfig & {
-  type: "tool-call";
-  tools: Tool[];
-  model: string;
-};
-export type ToolNodeConfig = BaseNodeConfig & {
-  type: "tool";
-  name: string;
-  impl: (...params: unknown[]) => Promise<Data>;
 };
 
 export type StringNodeConfig = BaseNodeConfig & { type: "string" };
@@ -185,6 +74,11 @@ export type NodeConfig =
   | ToolNodeConfig
   | VariableNodeConfig;
 
+// Extras ---
+//
+//    Leftover from first attempt
+//
+// ---------------
 export interface Tool {
   type: "function";
   function: {
@@ -207,14 +101,43 @@ export interface ToolCallOutputs {
   toolArgs?: Data;
 }
 
-// ToolNode receives args and produces a result
-export interface ToolNodeInputs {
-  args: Data;
-}
-
-export interface ToolNodeOutputs {
-  result: unknown;
-}
-
-// Ollama
 export type LLMFormat = unknown;
+
+export type ConditionalValue = "true" | "false" | string;
+export type ComparisonOp =
+  | "eq" // number compare
+  | "neq"
+  | "lt"
+  | "gt"
+  | "lte"
+  | "gte"
+  | "contains" // string compare
+  | "startsWith"
+  | "endsWith";
+
+export interface IfInputs {
+  selector: string; // dot-path to the output to compare
+  op: ComparisonOp;
+  target: IOTypeMap[IOType]; // the target to compare against
+  ignoreCase?: boolean;
+}
+
+export interface IfOutputs {
+  result: boolean;
+}
+
+export type IfNodeConfig = BaseNodeConfig & {
+  type: "if";
+  statement: IfInputs;
+};
+
+export type ToolCallNodeConfig = BaseNodeConfig & {
+  type: "tool-call";
+  tools: Tool[];
+  model: string;
+};
+export type ToolNodeConfig = BaseNodeConfig & {
+  type: "tool";
+  name: string;
+  impl: (...params: unknown[]) => Promise<Data>;
+};

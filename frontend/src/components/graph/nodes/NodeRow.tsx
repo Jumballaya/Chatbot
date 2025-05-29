@@ -2,15 +2,14 @@ import { Position } from "@xyflow/react";
 import StringInput from "../inputs/StringInput";
 import { GraphState, useGraphStore } from "../../../state/graphStore";
 import TypedHandle from "./TypedHandle";
-import { IOType, Port } from "../../../graph/types";
+import { IOType, Port, PortDirection } from "../../../graph/types";
 import NumberInput from "../inputs/NumberInput";
 import BooleanInput from "../inputs/BooleanInput";
 import InputLabel from "../inputs/InputLabel";
 
 const selector = (id: string) => (store: GraphState) => ({
-  getValue: (k: string, d: "sources" | "targets") =>
-    store.getNodeValue(id, k, d),
-  setValue: (k: string, d: "sources" | "targets", v: Partial<Port<IOType>>) =>
+  getValue: (k: string, d: PortDirection) => store.getNodeValue(id, k, d),
+  setValue: (k: string, d: PortDirection, v: Partial<Port<IOType>>) =>
     store.setNodeValue(id, k, d, v),
 });
 
@@ -18,7 +17,7 @@ type RowInputProps = {
   value: Partial<Port<IOType>>;
   attribute: string;
   id: string;
-  direction: "sources" | "targets";
+  direction: PortDirection;
 };
 
 function RowInput(props: RowInputProps) {

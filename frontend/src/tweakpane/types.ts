@@ -1,11 +1,11 @@
 import type { Value, ViewProps } from "@tweakpane/core";
-import { VariableType, VariableValue } from "../graph/types";
+import { IOType, IOTypeMap } from "../graph/types";
 
 export type VariableEntry = {
   id: string;
   name: string;
-  type: VariableType;
-  value: VariableValue;
+  type: IOType;
+  value: IOTypeMap[IOType];
 };
 
 export type VariableEntryConfig = {

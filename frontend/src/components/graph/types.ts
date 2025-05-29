@@ -45,7 +45,7 @@ export type VariableNodeProps = {
   type: "variable";
   id: string;
   data: {
-    sources: { output: Port<"boolean" | "number" | "string" | "any"> };
+    sources: { output: Port<"boolean" | "number" | "string"> };
   };
 };
 

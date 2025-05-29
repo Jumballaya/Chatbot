@@ -7,13 +7,11 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
 } from "@xyflow/react";
-import { ExecutionGraph } from "../graph/ExecutionGraph";
 import { createWithEqualityFn } from "zustand/traditional";
 import { nanoid } from "nanoid";
 import type {
   VariableDef,
   GraphNodeType,
-  Data,
   PortDirection,
   IOType,
   Port,
@@ -31,7 +29,7 @@ export interface GraphState {
     { name: string; type: IOType; value: IOTypeMap[IOType] }
   >;
   activeGraphId: string | null;
-  graphs: Record<string, { compiled: boolean; graph: ExecutionGraph }>;
+  graphs: Record<string, { compiled: boolean; graph: null }>;
 
   onNodesChange: OnNodesChange<Node<GraphData>>;
   onEdgesChange: OnEdgesChange;
@@ -128,7 +126,7 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
   setNodeValue(id, port, direction, value, propagate = true) {
     const node = get().nodes.find((n) => n.id === id);
     if (!node) return;
-    const data = node.data as Data;
+    const data = node.data as GraphData;
     if (!data[direction]) return;
 
     get().updateNode(id, {
@@ -147,13 +145,17 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     }
   },
 
-  getNodeValue(id, port, direction) {
+  getNodeValue<T extends IOType>(
+    id: string,
+    port: string,
+    direction: PortDirection
+  ) {
     const node = get().nodes.find((n) => n.id === id);
     if (!node) return;
-    const data = node.data as Data;
+    const data = node.data as GraphData;
     if (!data[direction]) return;
     const val = data[direction][port];
-    return val;
+    return val as Port<T>;
   },
 
   addEdge(data) {
@@ -241,12 +243,10 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     for (const edge of removedEdges) {
       const sourceNode = nodes.find((n) => n.id === edge.source);
       const targetNode = nodes.find((n) => n.id === edge.target);
-      const sourcePort = (sourceNode?.data?.sources as Data)[
-        edge.sourceHandle ?? ""
-      ];
-      const targetPort = (targetNode?.data?.targets as Data)[
-        edge.targetHandle ?? ""
-      ];
+      const sourceData = sourceNode?.data as GraphData | undefined;
+      const targetData = targetNode?.data as GraphData | undefined;
+      const sourcePort = sourceData?.sources?.[edge.sourceHandle ?? ""];
+      const targetPort = targetData?.targets?.[edge.targetHandle ?? ""];
       if (sourceNode && sourcePort && edge.sourceHandle) {
         setNodeValue(
           sourceNode.id,
