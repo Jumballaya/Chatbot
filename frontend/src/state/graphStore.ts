@@ -17,15 +17,19 @@ import type {
   PortDirection,
   IOType,
   Port,
+  IOTypeMap,
 } from "../graph/types";
 import { validateConnection } from "../graph/validators";
 import type { GraphData } from "../components/graph/types";
 import { createInitialNode } from "../graph/reactNodeFactory";
-import { addNodeFromReactFlow } from "../graph/reactFlowAdapter";
 
 export interface GraphState {
   nodes: Node<GraphData>[];
   edges: Edge[];
+  variables: Record<
+    string,
+    { name: string; type: IOType; value: IOTypeMap[IOType] }
+  >;
   activeGraphId: string | null;
   graphs: Record<string, { compiled: boolean; graph: ExecutionGraph }>;
 
@@ -58,34 +62,26 @@ export interface GraphState {
     value: Partial<Port<T>>
   ) => void;
 
-  setActiveGraph: (id: string | null) => void;
-  getActiveGraph: () => ExecutionGraph;
-
-  compileGraph: (id: string) => void;
-  getCompiledGraph: (id: string) => ExecutionGraph | undefined;
-  getGraph: (id: string) => ExecutionGraph | undefined;
   getVariableList: () => VariableDef[];
 }
 
 export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
   nodes: [],
   edges: [],
-  graphs: {
-    default: {
-      compiled: false,
-      graph: (() => {
-        const graph = new ExecutionGraph();
-        graph.globals.addVariable(
-          "initial_prompt",
-          "string",
-          "Why is the sky blue?"
-        );
-        graph.globals.addVariable("llm_model", "string", "gemma3:4b");
-        graph.globals.addVariable("test123", "number", 10);
-        return graph;
-      })(),
+  variables: {
+    initial_prompt: {
+      name: "initial_prompt",
+      type: "string",
+      value: "Why is the sky blue?",
+    },
+    llm_model: {
+      name: "initial_prompt",
+      type: "string",
+      value: "gemma3:4b",
     },
   },
+
+  graphs: {},
   activeGraphId: "default",
 
   onNodesChange(changes) {
@@ -284,56 +280,16 @@ export const useGraphStore = createWithEqualityFn<GraphState>((set, get) => ({
     setEdges(nextEdges);
   },
 
-  compileGraph(id) {
-    const { nodes, edges, graphs } = get();
-    const graph = graphs[id].graph;
-    graph.clear();
-
-    for (const node of nodes) {
-      addNodeFromReactFlow(node, graph);
-    }
-
-    for (const edge of edges) {
-      graph.addEdge({
-        fromNode: edge.source,
-        toNode: edge.target,
-        fromPort: edge.sourceHandle ?? "output",
-        toPort: edge.targetHandle ?? "input",
-      });
-    }
-
-    set((s) => ({
-      graphs: {
-        ...s.graphs,
-        [id]: { compiled: true, graph },
-      },
-    }));
-  },
-
-  getCompiledGraph(id) {
-    const entry = get().graphs[id];
-    if (entry.compiled) return entry.graph;
-  },
-
-  getGraph(id) {
-    return get().graphs[id]?.graph;
-  },
-
-  setActiveGraph(id) {
-    set({ activeGraphId: id });
-  },
-
-  getActiveGraph() {
-    const state = get();
-    return state.graphs[state.activeGraphId ?? "default"].graph;
-  },
-
   getVariableList() {
     const state = get();
-    return Object.values(
-      state.graphs[
-        state.activeGraphId ?? "default"
-      ].graph.globals.getVariables()
-    );
+    return Object.entries(state.variables).map((e) => {
+      const [id, { name, type, value }] = e;
+      return {
+        id,
+        name,
+        type,
+        value,
+      };
+    });
   },
 }));

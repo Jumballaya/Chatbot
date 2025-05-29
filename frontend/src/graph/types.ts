@@ -31,8 +31,8 @@ export type VariableValue = string | number | boolean;
 export interface VariableDef {
   id: string;
   name: string;
-  type: VariableType;
-  value: VariableValue;
+  type: IOType;
+  value: IOTypeMap[IOType];
 }
 
 export type Port<T extends IOType> = {

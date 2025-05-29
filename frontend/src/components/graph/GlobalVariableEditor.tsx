@@ -1,19 +1,21 @@
 import { useRef } from "react";
 import useVariableFolder from "../../hooks/useVariableFolder";
-import { GraphState, useGraphStore } from "../../state/graphStore";
 
 const styles = {
   visible: "opacity-100 pointer-events-auto",
   hidden: "opacity-0 pointer-events-none",
 };
 
-const selector = (s: GraphState) => ({
-  globals: s.getActiveGraph()?.globals,
-});
-
 export default function GlobalVariableEditor(props: { visible?: boolean }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const { globals } = useGraphStore(selector);
+
+  const globals = {
+    getVariables: () => ({}),
+    hasVariableId: (id: unknown) => false,
+    updateVariable: (...params: unknown[]) => {},
+    addVariable: (...params: unknown[]) => {},
+    removeVariable: (...params: unknown[]) => {},
+  };
 
   useVariableFolder(ref, {
     title: "Global Variables",
