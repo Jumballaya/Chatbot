@@ -118,7 +118,7 @@ export function createVariableNode(
       sources: {
         output: {
           connected: false,
-          type: "any",
+          type: "string",
           value: "",
           controlled: true,
         },
